@@ -1,5 +1,7 @@
 #!/bin/bash
 
-cmake .
+mkdir _build
+cd _build
+cmake ../
 make
 
