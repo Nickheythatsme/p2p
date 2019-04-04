@@ -6,4 +6,5 @@ install:
     - make 
     - build-essential
 
-script: ./configure
+script: 
+    - ./configure
