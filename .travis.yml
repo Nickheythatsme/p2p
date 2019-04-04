@@ -1,0 +1,11 @@
+
+language: cpp
+os:
+    - linux
+install: 
+    - cmake 
+    - make 
+    - build-essential
+
+script: cmake && make
+
