@@ -1,4 +1,3 @@
-
 language: cpp
 os:
     - linux
@@ -7,5 +6,4 @@ install:
     - make 
     - build-essential
 
-script: ./configure 
-
+script: ./configure
