@@ -1,5 +1,4 @@
 # TODO add more documentation here
-
 cmake_minimum_required (VERSION 3.9)
 set (CMAKE_CXX_STANDARD 11)
 project (p2p)
@@ -10,3 +9,5 @@ project (p2p)
 # the project's entire directory structure.
 add_subdirectory (src)
 add_subdirectory (tests)
+
+enable_testing()
