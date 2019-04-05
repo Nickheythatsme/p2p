@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/p2p.dir/main.cpp.o  -o p2p -lpthread 
