@@ -1,7 +1,0 @@
-/home/ubuntu/p2p/CMakeFiles/rebuild_cache.dir
-/home/ubuntu/p2p/CMakeFiles/edit_cache.dir
-/home/ubuntu/p2p/src/CMakeFiles/rebuild_cache.dir
-/home/ubuntu/p2p/src/CMakeFiles/p2p.dir
-/home/ubuntu/p2p/src/CMakeFiles/edit_cache.dir
-/home/ubuntu/p2p/tests/CMakeFiles/rebuild_cache.dir
-/home/ubuntu/p2p/tests/CMakeFiles/edit_cache.dir
