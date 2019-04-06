@@ -25,7 +25,7 @@ int run()
 
     int sockfd; 
     char buffer[MAXLINE]; 
-    char *hello = "Hello from client"; 
+    const char *hello = "Hello from client"; 
     struct sockaddr_in     servaddr; 
   
     // Creating socket file descriptor 
