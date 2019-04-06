@@ -31,3 +31,7 @@ add_executable(example example.cpp)
 target_link_libraries(example gtest_main)
 add_test(NAME example_test COMMAND example)
 
+add_executable(udp_test udp_test.cpp)
+target_link_libraries(udp_test gtest_main)
+add_test(NAME udp_test COMMAND udp_test)
+
