@@ -42,7 +42,7 @@ fi
 
 # Start building boost
 cd $boost_download_dir
-if [ $os_type == "Darwin" ]; then
+if [ $os_type == "Linux" ]; then
     cpu_count=`cat /proc/cpuinfo | grep "cpu cores" | uniq | awk '{print $NF}'`
 else
     cpu_count=`sysctl -n hw.ncpu`
@@ -51,7 +51,7 @@ fi
 ./bootstrap.sh
 sudo ./b2 --with-type_erasure --with-iostreams -j $cpu_count install > /dev/null 2>&1
 
-if [ $os_type == "Darwin" ]; then
+if [ $os_type == "Linux" ]; then
     sudo ldconfig
 fi
 
