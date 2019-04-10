@@ -1,4 +1,3 @@
-enable_testing()
 cmake_minimum_required (VERSION 3.9)
 
 configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
@@ -25,13 +24,17 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
 
+# Find Boost
+find_package(Boost 1.69 REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
-# Now simply link against gtest or gtest_main as needed. Eg
-add_executable(example example.cpp)
-target_link_libraries(example gtest_main)
-add_test(NAME example_test COMMAND example)
+# Making tests here
+add_executable(example_test example_test.cpp)
+target_link_libraries(example_test gtest_main)
+add_test(NAME example_test COMMAND example_test)
 
-add_executable(udp_test udp_test.cpp)
-target_link_libraries(udp_test gtest_main)
-add_test(NAME udp_test COMMAND udp_test)
+add_executable(node_test node_test.cpp)
+target_link_libraries(node_test gtest_main Boost::boost)
+add_test(NAME node_test COMMAND node_test)
+
 

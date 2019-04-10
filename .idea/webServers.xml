@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="fd5b9ae0-fe3c-41a9-9667-aa7aa7db5446" name="Lightsail" url="http://54.201.217.87">
+        <fileTransfer host="54.201.217.87" port="22" privateKey="$PROJECT_DIR$/../aws/LightsailDefaultKey-us-west-2.pem" rootFolder="/home/ubuntu/p2p " accessType="SFTP" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
