@@ -1,11 +1,11 @@
 language: cpp
 dist: trusty
 sudo: false
-os: linux
 
 matrix:
   include:
     - env: COMPILER=g++-6 BUILD=Debug STANDARD=17
+      os: linux
       compiler: gcc
       addons:
         apt:
@@ -14,7 +14,8 @@ matrix:
             - g++
             - cmake
             - libboost-all-dev
-    - env: COMPILER=g++-6 BUILD=Release STANDARD=17
+    - env: COMPILER=g++-6 BUILD=Debug STANDARD=17
+      os: osx
       compiler: gcc
       addons:
         apt:
