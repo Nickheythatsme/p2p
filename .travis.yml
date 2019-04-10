@@ -1,2 +1,28 @@
 language: cpp
-script: ./configure && make && ctest -VV
+dist: trusty
+sudo: false
+os: linux
+
+matrix:
+  include:
+    - env: COMPILER=g++-6 BUILD=Debug STANDARD=17
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - build-essential
+            - g++
+            - cmake
+            - libboost-all-dev
+    - env: COMPILER=g++-6 BUILD=Release STANDARD=17
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - build-essential
+            - g++
+            - cmake
+            - libboost-all-dev
+
+
+script: ./configure && cd _build && make && ctest -VV

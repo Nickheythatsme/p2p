@@ -1,2 +1,37 @@
 #!/bin/bash
-cmake .
+
+#### Make a _build dir to hold boost & p2p 
+working_dir="$(pwd)/_build"
+if [ ! -f $working_dir ]; then
+    mkdir $working_dir
+fi
+cd $working_dir
+
+#### Set up Boost
+# Get required libs
+sudo apt-get update
+sudo apt-get install -y build-essential g++ build-essential
+
+# Get boost source
+boost_download_url=https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
+boost_download_dir=boost_1_69_0
+boost_download_file=${boost_download_dir}.tar.gz
+if [ ! -f $boost_download_file ]; then
+    echo "boost tar file does not exist, downloading it"
+    curl -L $boost_download_url -o $boost_download_file
+    tar xzf $boost_download_file
+else
+    echo "boost tar file already exists, skipping download"
+fi
+
+# Start building boost
+cd $boost_download_dir
+cpu_count=`cat /proc/cpuinfo | grep "cpu cores" | uniq | awk '{print $NF}'`
+./bootstrap.sh
+sudo ./b2 --with-type_erasure --with-iostreams -j $cpu_count install > /dev/null 2>&1
+sudo ldconfig
+
+# Set up p2p
+cd $working_dir
+cmake ..
+
