@@ -17,13 +17,6 @@ matrix:
     - env: COMPILER=g++-6 BUILD=Debug STANDARD=17
       os: osx
       compiler: gcc
-      addons:
-        apt:
-          packages:
-            - build-essential
-            - g++
-            - cmake
-            - libboost-all-dev
 
 
 script: ./configure && cd _build && make && ctest -VV
