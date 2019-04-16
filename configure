@@ -11,49 +11,14 @@ else
     echo "Unsupported platform. Exiting"
     exit 2
 fi
-printf "Building for: %s\n" $os_type
-printf "CPU count: %s\n" $cpu_count
-#### END Get ENV info
 
 #### Make a _build dir to hold boost & p2p build files
 working_dir="$(pwd)/_build"
 if [ ! -d $working_dir ]; then
     mkdir $working_dir
 fi
-cd $working_dir
 
-#### Set up Boost
-# Get boost source
-boost_download_url=https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
-boost_download_dir=${working_dir}/boost_1_69_0
-boost_download_file=${boost_download_dir}.tar.gz
-if [ ! -f $boost_download_file ]; then
-    echo "Boost tar file does not exist, downloading it to $boost_download_file"
-    curl -L $boost_download_url -o $boost_download_file
-else
-    echo "Boost tar file already exists here: $boost_download_file"
-fi
-if [ ! -d $boost_download_dir ]; then
-    echo "Uncompressing ${boost_download_file} to $boost_download_dir"
-    tar -xzf $boost_download_file
-else
-    echo "$boost_download_dir already exists, skipping uncompressing"
-fi
+#### Call Cmake
+cd $working_dir && cmake -DCPU_COUNT=$cpu_count ..
 
-# Start building boost
-cd $boost_download_dir
-
-if [ ! -f $boost_download_dir/b2 ]; then
-    ./bootstrap.sh
-fi
-
-# Build only what we need
-with="--with-type_erasure --with-iostreams --with-thread"
-./b2 -d0 $with -j $cpu_count
-echo "Finished building boost."
-#### END Set up Boost
-
-# Set up p2p
-cd $working_dir
-cmake -DBOOST_ROOT=${boost_download_dir} ..
 
