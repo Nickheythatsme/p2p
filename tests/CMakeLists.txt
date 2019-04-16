@@ -60,5 +60,9 @@ add_test(NAME example_test COMMAND example_test)
 add_executable(node_test node_test.cpp)
 target_link_libraries(node_test gtest_main ${Boost_LIBRARIES})
 add_test(NAME node_test COMMAND node_test)
+
+add_executable(server_test server_test.cpp)
+target_link_libraries(server_test gtest_main ${Boost_LIBRARIES})
+add_test(NAME server_test COMMAND server_test)
 ### END Add/Make tests
 
