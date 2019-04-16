@@ -11,5 +11,4 @@ using namespace p2p;
 
 TEST(Server, Smoke) {
     server s;
-    s.listen(8080);
 }
