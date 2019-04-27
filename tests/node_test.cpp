@@ -27,12 +27,13 @@ TEST(Node, InvalidAddress) {
 }
 
 TEST(Node, PingTest) {
-    const char* address ="108.59.31.150";
+    const char* address ="68.179.215.230";
     try {
-        Node n(address, 20);
+        Node n(address, 4343);
         n.ping();
     }
     catch(const node_exception &e) {
         std::cerr << e.what() << std::endl;
+        FAIL() << e.what();
     }
 }

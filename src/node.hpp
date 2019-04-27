@@ -90,9 +90,7 @@ class Node
             printf("Connecting to server\n");
             if (connect(sockfd, (struct sockaddr *)&(*addr), sizeof(sockaddr_in)) < 0)
             {
-                // TODO fix exception handling
-                perror("Connection failed\n");
-                return -1;
+                throw socket_exception();
             }
             printf("Connection successful, sending message\n");
             send(sockfd, "Hello!" , strlen("Hello!"), 0 );
