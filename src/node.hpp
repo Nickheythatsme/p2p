@@ -11,7 +11,6 @@
 #include <sys/socket.h>
 
 // For inet_pton
-#define _OPEN_SYS_SOCK_IPV6
 #include <arpa/inet.h>
 
 /*
@@ -25,8 +24,14 @@ int connect(int sockfd, const struct sockaddr *addr,
 
 using std::vector;
 
+// Classes used for exception handling
 class node_exception: public std::exception
 {
+    public:
+        virtual const char* what() const noexcept
+        {
+            return "Unknown node exception";
+        }
 };
 
 class invalid_ip_exception: public node_exception 
@@ -37,6 +42,35 @@ class invalid_ip_exception: public node_exception
             return "Invalid IP address or domain address";
         }
 };
+
+class socket_exception: public node_exception
+{
+    public:
+        socket_exception() noexcept
+        {
+            error_at_init = errno;
+        }
+        const char* what() const noexcept override
+        {
+            switch(error_at_init)
+            {
+                case EACCES:
+                    return "Error creating socket: permission denied";
+                case ENFILE:
+                    return "Error creating socket: The system file table is full.";
+                case ENOBUFS:
+                    return "Error creating socket: Insufficient buffer space";
+                case ENOMEM:
+                    return "Error creating socket: Insufficient memory to complete operation";
+                default:
+                    return "Error creating socket: Unknown error. Check global variable errno";
+
+            }
+        }
+private:
+    errno_t error_at_init;
+};
+
 
 class Node
 {
@@ -49,14 +83,32 @@ class Node
         }
         bool ping()
         {
-            // TODO implement
+            int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+            if (sockfd < 0) {
+                throw socket_exception();
+            }
+            printf("Connecting to server\n");
+            if (connect(sockfd, (struct sockaddr *)&(*addr), sizeof(sockaddr_in)) < 0)
+            {
+                // TODO fix exception handling
+                perror("Connection failed\n");
+                return -1;
+            }
+            printf("Connection successful, sending message\n");
+            send(sockfd, "Hello!" , strlen("Hello!"), 0 );
+            printf("Hello message sent\n");
+            char buffer[1024];
+            ssize_t valread = read(sockfd, buffer, 1024);
+            printf("%s\n", buffer);
+
             return true;
         }
     protected:
         void init_sockaddr_in(const char* address, unsigned short port)
         {
-            sockaddr_in* addr = new sockaddr_in;
-            memset(addr, '0', sizeof(sockaddr_in));
+            auto* addr = new sockaddr_in;
+            // set all to '0', we use hexcode to be explicit, as '0' sometimes looks like 0
+            memset(addr, 0x30, sizeof(sockaddr_in));
 
             addr->sin_family = AF_INET;
             addr->sin_port = port;

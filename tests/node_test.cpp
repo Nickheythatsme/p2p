@@ -15,7 +15,7 @@ TEST(Node, SmokeTest) {
 
 TEST(Node, InvalidAddress) {
     try {
-        Node *n = new Node("ffff.8.8.8", 0);
+        Node n("ffff.8.8.8", 0);
     }
     catch(const node_exception &e) {
         // Pass if we make it here and end test
@@ -26,3 +26,13 @@ TEST(Node, InvalidAddress) {
     FAIL() << "Exception was not thrown when it was suppossed to";
 }
 
+TEST(Node, PingTest) {
+    const char* address ="108.59.31.150";
+    try {
+        Node n(address, 20);
+        n.ping();
+    }
+    catch(const node_exception &e) {
+        std::cerr << e.what() << std::endl;
+    }
+}
