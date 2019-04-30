@@ -27,31 +27,6 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 ### END Set up googletest
 
 
-### Find Boost
-#set(Boost_USE_STATIC_LIBS ON) 
-#set(Boost_USE_MULTITHREADED ON)  
-#set(Boost_USE_STATIC_RUNTIME OFF) 
-#set(Boost_NO_SYSTEM_PATHS TRUE)
-#
-#if ((Boost_NO_SYSTEM_PATHS) AND (NOT BOOST_ROOT))
-#    message (FATAL_ERROR "BOOST_ROOT is not set. Stopping.")
-#else()
-#    set(BOOST_INCLUDEDIR "${BOOST_ROOT}/boost")
-#    set(BOOST_LIBRARYDIR "${BOOST_ROOT}/stage/lib")
-#    message (STATUS "BOOST_ROOT: ${BOOST_ROOT}")
-#    message (STATUS "BOOST_INCLUDEDIR: ${BOOST_INCLUDEDIR}")
-#    message (STATUS "BOOST_LIBRARYDIR: ${BOOST_LIBRARYDIR}")
-#    find_package(Boost 1.69 REQUIRED COMPONENTS iostreams thread chrono system)
-#    if (Boost_FOUND)
-#        include_directories(${Boost_INCLUDE_DIRS})
-#        message (STATUS "Found the following Boost libraries: " ${Boost_LIBRARIES})
-#    else()
-#        message (SEND_ERROR "Boost not found. See logs above")
-#    endif()
-#endif()
-### END Find Boost
-
-
 ### Add/Make tests
 add_executable(example_test example_test.cpp)
 target_link_libraries(example_test gtest_main)
@@ -64,5 +39,9 @@ add_test(NAME node_test COMMAND node_test)
 add_executable(server_test server_test.cpp)
 target_link_libraries(server_test gtest_main)
 add_test(NAME server_test COMMAND server_test)
+
+add_executable(logger_test logger_test.cpp)
+target_link_libraries(logger_test gtest_main)
+add_test(NAME logger_test COMMAND logger_test)
 ### END Add/Make tests
 
