@@ -27,9 +27,9 @@ TEST(Node, InvalidAddress) {
 }
 
 TEST(Node, PingTest) {
-    const char* address ="68.179.215.230";
+    const char* address ="127.0.0.1";
     try {
-        Node n(address, 4343);
+        Node n(address, 20);
         n.ping();
     }
     catch(const node_exception &e) {
