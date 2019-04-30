@@ -9,6 +9,7 @@
 // For socket info
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
 
 // For inet_pton
 #include <arpa/inet.h>
@@ -63,12 +64,12 @@ class socket_exception: public node_exception
                 case ENOMEM:
                     return "Error creating socket: Insufficient memory to complete operation";
                 default:
-                    return "Error creating socket: Unknown error. Check global variable errno";
+                    return "Error creating socket: Unknown error.";
 
             }
         }
 private:
-    errno_t error_at_init;
+    int error_at_init;
 };
 
 
@@ -81,6 +82,7 @@ class Node
         {
             init_sockaddr_in(address, port);
         }
+        // Ping another node
         bool ping()
         {
             int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -92,14 +94,18 @@ class Node
             {
                 throw socket_exception();
             }
+            // TODO add logging & time stats
             printf("Connection successful, sending message\n");
-            send(sockfd, "Hello!" , strlen("Hello!"), 0 );
-            printf("Hello message sent\n");
+            send(sockfd, "ping!" , strlen("ping!"), 0 );
+            printf("ping sent\n");
             char buffer[1024];
             ssize_t valread = read(sockfd, buffer, 1024);
             printf("%s\n", buffer);
-
             return true;
+        }
+        // Single threaded, thread safe. Listen for & respond to pings.
+        void listen()
+        {
         }
     protected:
         void init_sockaddr_in(const char* address, unsigned short port)
