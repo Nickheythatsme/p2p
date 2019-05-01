@@ -6,11 +6,9 @@
 
 using namespace p2p;
 
-TEST(Logger, Smoke) {
-    const char* address_test = "address_test";
-    auto cout_buf = std::cout.rdbuf();
-    auto ostream_ptr = new std::ostream(cout_buf);
 
+
+TEST(Logger, Smoke) {
 
     /*
     *log << "test!" << "test2";
