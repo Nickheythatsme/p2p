@@ -40,7 +40,7 @@ add_executable(server_test server_test.cpp)
 target_link_libraries(server_test gtest_main)
 add_test(NAME server_test COMMAND server_test)
 
-add_executable(logger_test logger_test.cpp)
+add_executable(logger_test logger_test.cpp ../src/util/runnable.hpp)
 target_link_libraries(logger_test gtest_main)
 add_test(NAME logger_test COMMAND logger_test)
 ### END Add/Make tests
