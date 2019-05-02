@@ -69,10 +69,11 @@ class LoggerPrinter: public std::ostream
             std::lock_guard<std::mutex> guard(new_logs_lock);
             new_logs.emplace_back(message);
         }
-        std::streambuf* swap(std::streambuf* sb)
+        LoggerPrinter& operator=(std::ostream&& rhs)
         {
             std::lock_guard<std::mutex> guard(new_logs_lock);
-            return this->rdbuf(sb);
+            std::ostream::operator=(std::move(rhs));
+            return *this;
         }
     protected:
         void stop()
@@ -114,26 +115,26 @@ class Logger
         }
         void debug(std::string message)
         {
-            if (log_level >= Logger::DEBUG)
+            if (log_level <= Logger::DEBUG)
                 output_message(std::move(message));
         }
         void info(std::string message)
         {
-            if (log_level >= Logger::INFO)
+            if (log_level <= Logger::INFO)
                 output_message(std::move(message));
         }
         void warn(std::string message)
         {
-            if (log_level >= Logger::WARN)
+            if (log_level <= Logger::WARN)
                 output_message(std::move(message));
         }
         void crit(std::string message)
         {
             output_message(std::move(message));
         }
-        std::streambuf* swap(std::streambuf* sb)
+        void change_stream(std::ostream&& rhs)
         {
-            return printer.swap(sb);
+            printer = std::move(rhs);
         }
         static const short DEBUG {0x0};
         static const short INFO  {0x1};

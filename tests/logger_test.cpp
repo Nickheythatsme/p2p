@@ -26,11 +26,11 @@ void use_logger(matrix_vector& matrix)
 {
     Logger logger;
     std::ofstream fout("logger.out");
-    auto backup = logger.swap(fout.rdbuf());
+    logger.change_stream(std::move(fout));
 
     for (int i=0; i<LOG_ITERATIONS; ++i)
     {
-        logger.debug(PLACE_HOLDER_TEXT);
+        logger.info(PLACE_HOLDER_TEXT);
     }
     do_matrix_mult(matrix);
 }
@@ -58,6 +58,7 @@ void use_fprintf(matrix_vector& matrix)
         fflush(fout);
     }
     do_matrix_mult(matrix);
+    fclose(fout);
 }
 
 double run_tests(output_test test)
@@ -79,6 +80,34 @@ double run_tests(output_test test)
     return duration.count();
 }
 
+void normal_matrix_mult(matrix_vector& matrix)
+{
+    Logger logger;
+    std::ofstream fout("logger_null.out");
+    logger.change_stream(std::move(fout));
+
+    for (int i=0; i<100; ++i)
+    {
+        do_matrix_mult(matrix);
+        // logger.debug(PLACE_HOLDER_TEXT);
+        do_matrix_mult(matrix);
+    }
+}
+void matrix_mult_with_logger(matrix_vector& matrix)
+{
+    Logger logger;
+    std::ofstream fout("logger2.out");
+    logger.change_stream(std::move(fout));
+    logger.change_stream(std::move(cout));
+
+    for (int i=0; i<100; ++i)
+    {
+        do_matrix_mult(matrix);
+        logger.debug(PLACE_HOLDER_TEXT);
+        do_matrix_mult(matrix);
+    }
+}
+
 TEST(Logger, Speed) {
     // basic_ostream
     cout << "Starting basic_ostream test" << endl;
@@ -92,10 +121,14 @@ TEST(Logger, Speed) {
     cout << "Starting logger test" << endl;
     double logger_duration = run_tests(use_logger);
 
+    cout << "Starting logger slow down test" << endl;
+    double logger_slow_down_duration = run_tests(normal_matrix_mult) - run_tests(matrix_mult_with_logger);
+
     usleep(100000);
     printf("basic_ostream: %f us\n", basic_ostream_duration);
     printf("printf:        %f us\n", printf_duration);
     printf("logger:        %f us\n", logger_duration);
+    printf("logger slow down:        %f us\n", logger_slow_down_duration);
 
     if (logger_duration > printf_duration)
     {
