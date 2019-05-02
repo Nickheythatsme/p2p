@@ -12,3 +12,4 @@ using namespace p2p;
 TEST(Server, Smoke) {
     server s;
 }
+
