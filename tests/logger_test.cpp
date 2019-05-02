@@ -36,6 +36,17 @@ void use_cout(int **matrix)
     do_matrix_mult(matrix, 100, 100);
 }
 
+void use_printf(int **matrix)
+{
+    Logger logger;
+    for (int i=0; i<100; ++i)
+    {
+        printf("%d printf\n", i);
+        fflush(stdout);
+    }
+    do_matrix_mult(matrix, 100, 100);
+}
+
 int **make_matrix(size_t size)
 {
     int **matrix = new int*[size];
@@ -52,25 +63,34 @@ int **make_matrix(size_t size)
 
 TEST(Logger, Speed) {
     Logger logger;
-    int **matrix1 = make_matrix(1000);
-    int **matrix2 = make_matrix(1000);
+    int **matrix = make_matrix(1000);
 
     // cout
     auto start_cout = std::chrono::steady_clock::now();
-    use_cout(matrix1);
+    use_cout(matrix);
     auto end_cout = std::chrono::steady_clock::now();
     std::chrono::duration<double, std::micro> len_cout = end_cout-start_cout;
 
+    // printf
+    auto start_printf = std::chrono::steady_clock::now();
+    use_printf(matrix);
+    auto end_printf = std::chrono::steady_clock::now();
+    std::chrono::duration<double, std::micro> len_printf = end_printf-start_printf;
+
+    logger.swap(std::cout.rdbuf());
     // logger
     auto start_logger = std::chrono::steady_clock::now();
-    use_logger(matrix2);
+    use_logger(matrix);
     auto end_logger = std::chrono::steady_clock::now();
     std::chrono::duration<double, std::micro> len_logger = end_logger-start_logger;
 
     double len_cout_d = len_cout.count();
+    double len_printf_d = len_printf.count();
     double len_logger_d = len_logger.count();
     usleep(100000);
-    printf("cout: %f us\n", len_cout_d);
+    cout << std::flush;
+    printf("cout:   %f us\n", len_cout_d);
+    printf("printf: %f us\n", len_printf_d);
     printf("logger: %f us\n", len_logger_d);
 }
 

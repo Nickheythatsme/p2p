@@ -5,9 +5,8 @@
 #ifndef P2P_LOGGER_
 #define P2P_LOGGER_
 #include <string>
-#include <condition_variable>
 #include <mutex>
-#include <iostream>
+#include <ostream>
 #include <thread>
 #include <atomic>
 #include <sstream>
@@ -19,12 +18,21 @@ namespace p2p {
 
 #define OUTPUT_FREQ 100
 
-using formatter_func = std::ostream& (*)(std::ostream& out, const std::string& tag, const std::string& message);
+using formatter_func = std::string (*)(const std::string& tag, const std::string& message);
 
-std::ostream& default_formatter(std::ostream& out, const std::string &tag, const std::string &message)
+struct new_log
+{
+    std::string message;
+    const std::string* tag;
+    formatter_func formatter;
+};
+
+std::string default_formatter(const std::string& tag, const std::string& message)
 {
     // TODO add time formatting
-    return out << tag << ":" << message;
+    std::stringstream ss;
+    ss << tag << ":" << message;
+    return ss.str();
 }
 
 class LoggerPrinter: public std::ostream
@@ -46,6 +54,11 @@ class LoggerPrinter: public std::ostream
             std::unique_lock<std::mutex> guard(new_logs_lock);
             new_logs.emplace_back(std::move(message));
             guard.unlock();
+        }
+        std::streambuf* swap(std::streambuf* sb)
+        {
+            std::lock_guard<std::mutex> guard(new_logs_lock);
+            return this->rdbuf(sb);
         }
     protected:
         void stop()
@@ -78,18 +91,35 @@ class LoggerPrinter: public std::ostream
 class Logger
 {
     public:
-        Logger()
-        {
-        }
-        ~Logger()
+        Logger() = default;
+        ~Logger() = default;
+        Logger(std::string tag, short log_level):
+            tag(std::move(tag)),
+            log_level(log_level)
         {
         }
         void debug(std::string message)
         {
-            output_message(std::move(message));
+            if (log_level >= Logger::DEBUG)
+                output_message(std::move(message));
         }
         void info(std::string message)
         {
+            if (log_level >= Logger::INFO)
+                output_message(std::move(message));
+        }
+        void warn(std::string message)
+        {
+            if (log_level >= Logger::WARN)
+                output_message(std::move(message));
+        }
+        void crit(std::string message)
+        {
+            output_message(std::move(message));
+        }
+        std::streambuf* swap(std::streambuf* sb)
+        {
+            return printer.swap(sb);
         }
         static const short DEBUG {0x0};
         static const short INFO  {0x1};
@@ -101,12 +131,12 @@ class Logger
             printer.add_log(std::move(message));
         }
     private:
-        short log_level;
+        short log_level {Logger::INFO};
+        std::string tag;
         static LoggerPrinter printer;
 };
 
-LoggerPrinter Logger::printer(std::cout.rdbuf());
-
+LoggerPrinter Logger::printer(nullptr);
 
 } // namespace p2p
 #endif // P2P_LOGGER_
