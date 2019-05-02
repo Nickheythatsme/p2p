@@ -5,65 +5,108 @@
 #ifndef P2P_LOGGER_
 #define P2P_LOGGER_
 #include <string>
-#include <memory>
+#include <condition_variable>
 #include <mutex>
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <sstream>
 
-#include "runnable.hpp"
+// Use chrono if we upgrade to c++20
+#include <time.h> // for time formatting
 
 namespace p2p {
 
+#define OUTPUT_FREQ 100
+
+using formatter_func = std::ostream& (*)(std::ostream& out, const std::string& tag, const std::string& message);
+
+std::ostream& default_formatter(std::ostream& out, const std::string &tag, const std::string &message)
+{
+    // TODO add time formatting
+    return out << tag << ":" << message;
+}
+
+class LoggerPrinter: public std::ostream
+{
+    public:
+        explicit LoggerPrinter(std::streambuf *sb):
+            std::ostream(sb),
+            logging_thread(&LoggerPrinter::run, this)
+        {
+        }
+        LoggerPrinter(const LoggerPrinter &rhs) = delete;
+        LoggerPrinter(LoggerPrinter &&rhs) = delete;
+        virtual ~LoggerPrinter()
+        {
+            stop();
+        }
+        void add_log(std::string message)
+        {
+            std::unique_lock<std::mutex> guard(new_logs_lock);
+            new_logs.emplace_back(std::move(message));
+            guard.unlock();
+        }
+    protected:
+        void stop()
+        {
+            running=false;
+            if (logging_thread.joinable())
+                logging_thread.join();
+        }
+        void run()
+        {
+            do {
+                std::this_thread::sleep_for(std::chrono::milliseconds(OUTPUT_FREQ));
+                std::unique_lock<std::mutex> guard(new_logs_lock);
+                std::vector<std::string> to_output(std::move(new_logs));
+                guard.unlock();
+
+                for(const std::string &message : to_output)
+                {
+                    *this << message << std::endl;
+                }
+            } while(running);
+        }
+    private:
+        std::mutex new_logs_lock;
+        std::vector<std::string> new_logs;
+        std::atomic<bool> running {true};
+        std::thread logging_thread;
+};
 
 class Logger
 {
     public:
-        static void run()
+        Logger()
         {
-            while(running)
-            {
-                usleep(100);
-                if (!log_queue.empty())
-                {
-                    std::lock_guard<std::mutex> guard(log_queue_lock);
-                    std::cout << "Printing " << log_queue.size() << "\n";
-                    for (const std::string &log : log_queue)
-                    {
-                        std::cout << log << "\n";
-                    }
-                    log_queue.clear();
-                }
-            }
         }
         ~Logger()
         {
-            running = false;
         }
         void debug(std::string message)
         {
-            std::lock_guard<std::mutex> guard(log_queue_lock);
-            std::cout << "Thread adding debug message: " << std::this_thread::get_id() << "\n";
-            log_queue.emplace_back(std::move(message));
+            output_message(std::move(message));
         }
+        void info(std::string message)
+        {
+        }
+        static const short DEBUG {0x0};
+        static const short INFO  {0x1};
+        static const short WARN  {0x2};
+        static const short CRIT  {0x3};
     protected:
+        void output_message(std::string message)
+        {
+            printer.add_log(std::move(message));
+        }
     private:
-        static std::atomic<bool> running;
-        static std::mutex log_queue_lock;
-        static std::vector<std::string> log_queue;
+        short log_level;
+        static LoggerPrinter printer;
 };
 
-std::atomic<bool> Logger::running {true};
-std::mutex Logger::log_queue_lock;
-std::vector<std::string> Logger::log_queue {};
+LoggerPrinter Logger::printer(std::cout.rdbuf());
 
-
-/*
-static const short DEBUG {0x0};
-static const short INFO  {0x1};
-static const short WARN  {0x2};
-static const short CRIT  {0x3};
-*/
 
 } // namespace p2p
 #endif // P2P_LOGGER_

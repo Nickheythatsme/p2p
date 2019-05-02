@@ -3,41 +3,74 @@
 //
 #include "gtest/gtest.h"
 #include "../src/util/logger.hpp"
+#include <chrono>
 
 using namespace p2p;
 using namespace std;
 
-void test_log(int x)
+void do_matrix_mult(int **matrix, size_t x, size_t y)
 {
-    Logger logger;
-
-    for (int i=0; i<5; ++i) {
-        string message = std::string("thread #" +
-            std::to_string(x) +
-            " test #" +
-            std::to_string(i));
-        logger.debug(
-            message
-        );
+    for (int i=0; i<x; ++i)
+    {
+        for (int j=0; j<y; ++j)
+            matrix[j][i] *= 100;
     }
 }
 
-TEST(Logger, Smoke) {
+void use_logger(int **matrix)
+{
     Logger logger;
-    std::vector<std::thread> test_threads;
-    auto log_thread = std::thread(&Logger::run);
+    for (int i=0; i<100; ++i)
+    {
+        logger.debug(std::to_string(i) + " logger");
+    }
+    do_matrix_mult(matrix, 100, 100);
+}
 
-    for (int i=0; i<5; ++i)
+void use_cout(int **matrix)
+{
+    for (int i=0; i<100; ++i)
     {
-        test_threads.emplace_back(
-            std::thread(test_log, i)
-        );
+        cout << i << " cout" << std::endl;
     }
-    usleep(1000000L);
-    for (std::thread &test_thread : test_threads)
+    do_matrix_mult(matrix, 100, 100);
+}
+
+int **make_matrix(size_t size)
+{
+    int **matrix = new int*[size];
+    for (int i=0; i<size; ++i)
     {
-        test_thread.join();
+        matrix[i] = new int[size];
+        for (int j=0; j<size; ++j)
+        {
+            matrix[i][j] = j*i;
+        }
     }
-    log_thread.join();
+    return matrix;
+}
+
+TEST(Logger, Speed) {
+    Logger logger;
+    int **matrix1 = make_matrix(1000);
+    int **matrix2 = make_matrix(1000);
+
+    // cout
+    auto start_cout = std::chrono::steady_clock::now();
+    use_cout(matrix1);
+    auto end_cout = std::chrono::steady_clock::now();
+    std::chrono::duration<double, std::micro> len_cout = end_cout-start_cout;
+
+    // logger
+    auto start_logger = std::chrono::steady_clock::now();
+    use_logger(matrix2);
+    auto end_logger = std::chrono::steady_clock::now();
+    std::chrono::duration<double, std::micro> len_logger = end_logger-start_logger;
+
+    double len_cout_d = len_cout.count();
+    double len_logger_d = len_logger.count();
+    usleep(100000);
+    printf("cout: %f us\n", len_cout_d);
+    printf("logger: %f us\n", len_logger_d);
 }
 
