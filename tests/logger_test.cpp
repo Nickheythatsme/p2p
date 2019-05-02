@@ -3,94 +3,106 @@
 //
 #include "gtest/gtest.h"
 #include "../src/util/logger.hpp"
-#include <chrono>
+#include <fstream>
 
 using namespace p2p;
 using namespace std;
 
-void do_matrix_mult(int **matrix, size_t x, size_t y)
+using matrix_vector = std::vector<std::vector<int>>;
+using output_test = void (*)(matrix_vector&);
+
+#define LOG_ITERATIONS 100
+#define MATRIX_SIZE 1000
+#define PLACE_HOLDER_TEXT "TESTING"
+
+void do_matrix_mult(matrix_vector& matrix)
 {
-    for (int i=0; i<x; ++i)
-    {
-        for (int j=0; j<y; ++j)
-            matrix[j][i] *= 100;
-    }
+    for (auto& column : matrix)
+        for(auto& var : column)
+            var *= 10;
 }
 
-void use_logger(int **matrix)
+void use_logger(matrix_vector& matrix)
 {
     Logger logger;
-    for (int i=0; i<100; ++i)
+    std::ofstream fout("logger.out");
+    auto backup = logger.swap(fout.rdbuf());
+
+    for (int i=0; i<LOG_ITERATIONS; ++i)
     {
-        logger.debug(std::to_string(i) + " logger");
+        logger.debug(PLACE_HOLDER_TEXT);
     }
-    do_matrix_mult(matrix, 100, 100);
+    do_matrix_mult(matrix);
 }
 
-void use_cout(int **matrix)
+void use_basic_ostream(matrix_vector& matrix)
 {
-    for (int i=0; i<100; ++i)
+    std::ofstream fout("basic_ostream.out");
+    auto backup = cout.rdbuf(fout.rdbuf());
+
+    for (int i=0; i<LOG_ITERATIONS; ++i)
     {
-        cout << i << " cout" << std::endl;
+        cout << PLACE_HOLDER_TEXT << std::endl;
     }
-    do_matrix_mult(matrix, 100, 100);
+    do_matrix_mult(matrix);
+    cout.rdbuf(backup);
 }
 
-void use_printf(int **matrix)
+void use_fprintf(matrix_vector& matrix)
 {
-    Logger logger;
-    for (int i=0; i<100; ++i)
+    FILE* fout = fopen("fprintf.out","w");
+
+    for (int i=0; i<LOG_ITERATIONS; ++i)
     {
-        printf("%d printf\n", i);
-        fflush(stdout);
+        fprintf(fout, "%s\n", PLACE_HOLDER_TEXT);
+        fflush(fout);
     }
-    do_matrix_mult(matrix, 100, 100);
+    do_matrix_mult(matrix);
 }
 
-int **make_matrix(size_t size)
+double run_tests(output_test test)
 {
-    int **matrix = new int*[size];
-    for (int i=0; i<size; ++i)
+    matrix_vector matrix {MATRIX_SIZE};
+    for (int i=0; i<MATRIX_SIZE; ++i)
     {
-        matrix[i] = new int[size];
-        for (int j=0; j<size; ++j)
+        matrix[i].reserve(MATRIX_SIZE);
+        for (int j=0; j<MATRIX_SIZE; ++j)
         {
-            matrix[i][j] = j*i;
+            matrix[i][j] = i*j;
         }
     }
-    return matrix;
+
+    auto start = std::chrono::steady_clock::now();
+    test(matrix);
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double, std::micro> duration = end - start;
+    return duration.count();
 }
 
 TEST(Logger, Speed) {
-    Logger logger;
-    int **matrix = make_matrix(1000);
+    // basic_ostream
+    cout << "Starting basic_ostream test" << endl;
+    double basic_ostream_duration = run_tests(use_basic_ostream);
 
-    // cout
-    auto start_cout = std::chrono::steady_clock::now();
-    use_cout(matrix);
-    auto end_cout = std::chrono::steady_clock::now();
-    std::chrono::duration<double, std::micro> len_cout = end_cout-start_cout;
+    // fprintf
+    cout << "Starting fprintf test" << endl;
+    double printf_duration = run_tests(use_fprintf);
 
-    // printf
-    auto start_printf = std::chrono::steady_clock::now();
-    use_printf(matrix);
-    auto end_printf = std::chrono::steady_clock::now();
-    std::chrono::duration<double, std::micro> len_printf = end_printf-start_printf;
-
-    logger.swap(std::cout.rdbuf());
     // logger
-    auto start_logger = std::chrono::steady_clock::now();
-    use_logger(matrix);
-    auto end_logger = std::chrono::steady_clock::now();
-    std::chrono::duration<double, std::micro> len_logger = end_logger-start_logger;
+    cout << "Starting logger test" << endl;
+    double logger_duration = run_tests(use_logger);
 
-    double len_cout_d = len_cout.count();
-    double len_printf_d = len_printf.count();
-    double len_logger_d = len_logger.count();
     usleep(100000);
-    cout << std::flush;
-    printf("cout:   %f us\n", len_cout_d);
-    printf("printf: %f us\n", len_printf_d);
-    printf("logger: %f us\n", len_logger_d);
-}
+    printf("basic_ostream: %f us\n", basic_ostream_duration);
+    printf("printf:        %f us\n", printf_duration);
+    printf("logger:        %f us\n", logger_duration);
 
+    if (logger_duration > printf_duration)
+    {
+        FAIL() << "logger test duration was longer than printf";
+    }
+    else if (logger_duration > basic_ostream_duration)
+    {
+        FAIL() << "logger test duration was longer than basic_ostream";
+    }
+}

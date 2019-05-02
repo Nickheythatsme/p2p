@@ -19,14 +19,6 @@ namespace p2p {
 #define OUTPUT_FREQ 100
 
 using formatter_func = std::string (*)(const std::string& tag, const std::string& message);
-
-struct new_log
-{
-    std::string message;
-    const std::string* tag;
-    formatter_func formatter;
-};
-
 std::string default_formatter(const std::string& tag, const std::string& message)
 {
     // TODO add time formatting
@@ -34,6 +26,29 @@ std::string default_formatter(const std::string& tag, const std::string& message
     ss << tag << ":" << message;
     return ss.str();
 }
+
+
+class NewLog
+{
+    public:
+        NewLog(std::string message, std::shared_ptr<std::string> tag, formatter_func formatter):
+            message(std::move(message)),
+            tag(std::move(tag)),
+            formatter(formatter)
+        {
+        }
+        virtual ~NewLog() = default;
+        friend std::ostream& operator<<(std::ostream& out, const NewLog& log)
+        {
+            out << log.formatter(*log.tag, log.message);
+            return out;
+        }
+    protected:
+    private:
+        std::shared_ptr<std::string> tag;
+        std::string message;
+        formatter_func formatter;
+};
 
 class LoggerPrinter: public std::ostream
 {
@@ -49,11 +64,10 @@ class LoggerPrinter: public std::ostream
         {
             stop();
         }
-        void add_log(std::string message)
+        void add_log(NewLog &&message)
         {
-            std::unique_lock<std::mutex> guard(new_logs_lock);
-            new_logs.emplace_back(std::move(message));
-            guard.unlock();
+            std::lock_guard<std::mutex> guard(new_logs_lock);
+            new_logs.emplace_back(message);
         }
         std::streambuf* swap(std::streambuf* sb)
         {
@@ -72,10 +86,10 @@ class LoggerPrinter: public std::ostream
             do {
                 std::this_thread::sleep_for(std::chrono::milliseconds(OUTPUT_FREQ));
                 std::unique_lock<std::mutex> guard(new_logs_lock);
-                std::vector<std::string> to_output(std::move(new_logs));
+                std::vector<NewLog> to_output(std::move(new_logs));
                 guard.unlock();
 
-                for(const std::string &message : to_output)
+                for(const auto &message : to_output)
                 {
                     *this << message << std::endl;
                 }
@@ -83,7 +97,7 @@ class LoggerPrinter: public std::ostream
         }
     private:
         std::mutex new_logs_lock;
-        std::vector<std::string> new_logs;
+        std::vector<NewLog> new_logs;
         std::atomic<bool> running {true};
         std::thread logging_thread;
 };
@@ -94,7 +108,7 @@ class Logger
         Logger() = default;
         ~Logger() = default;
         Logger(std::string tag, short log_level):
-            tag(std::move(tag)),
+            tag(std::make_shared<std::string>(std::string(tag))),
             log_level(log_level)
         {
         }
@@ -126,13 +140,16 @@ class Logger
         static const short WARN  {0x2};
         static const short CRIT  {0x3};
     protected:
-        void output_message(std::string message)
+        void output_message(std::string &&message)
         {
-            printer.add_log(std::move(message));
+            printer.add_log(
+                NewLog(message, tag, formatter)
+            );
         }
     private:
+        formatter_func formatter {default_formatter};
         short log_level {Logger::INFO};
-        std::string tag;
+        std::shared_ptr<std::string> tag {std::make_shared<std::string>("tag")};
         static LoggerPrinter printer;
 };
 
