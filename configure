@@ -22,4 +22,3 @@ fi
 #cd $working_dir && cmake -DCPU_COUNT=$cpu_count ..
 cd $working_dir && cmake -DCMAKE_BUILD_TYPE=Debug -DCPU_COUNT=$cpu_count ..
 
-
