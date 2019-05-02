@@ -25,32 +25,32 @@ void do_matrix_mult(matrix_vector& matrix)
 void use_logger(matrix_vector& matrix)
 {
     Logger logger;
-    std::ofstream fout("logger.out");
-    logger.change_stream(std::move(fout));
+    logger.use_stdout();
 
     for (int i=0; i<LOG_ITERATIONS; ++i)
     {
-        logger.info(PLACE_HOLDER_TEXT);
+        logger.info("logger");
     }
     do_matrix_mult(matrix);
 }
 
 void use_basic_ostream(matrix_vector& matrix)
 {
-    std::ofstream fout("basic_ostream.out");
-    auto backup = cout.rdbuf(fout.rdbuf());
+    // std::ofstream fout("basic_ostream.out");
+    // auto backup = cout.rdbuf(fout.rdbuf());
 
     for (int i=0; i<LOG_ITERATIONS; ++i)
     {
         cout << PLACE_HOLDER_TEXT << std::endl;
     }
     do_matrix_mult(matrix);
-    cout.rdbuf(backup);
+    // cout.rdbuf(backup);
 }
 
 void use_fprintf(matrix_vector& matrix)
 {
-    FILE* fout = fopen("fprintf.out","w");
+    // FILE* fout = fopen("fprintf.out","w");
+    FILE* fout = stdout;
 
     for (int i=0; i<LOG_ITERATIONS; ++i)
     {
@@ -58,7 +58,7 @@ void use_fprintf(matrix_vector& matrix)
         fflush(fout);
     }
     do_matrix_mult(matrix);
-    fclose(fout);
+    // fclose(fout);
 }
 
 double run_tests(output_test test)
@@ -83,8 +83,6 @@ double run_tests(output_test test)
 void normal_matrix_mult(matrix_vector& matrix)
 {
     Logger logger;
-    std::ofstream fout("logger_null.out");
-    logger.change_stream(std::move(fout));
 
     for (int i=0; i<100; ++i)
     {
@@ -96,9 +94,7 @@ void normal_matrix_mult(matrix_vector& matrix)
 void matrix_mult_with_logger(matrix_vector& matrix)
 {
     Logger logger;
-    std::ofstream fout("logger2.out");
-    logger.change_stream(std::move(fout));
-    logger.change_stream(std::move(cout));
+    logger.use_file("logger.out");
 
     for (int i=0; i<100; ++i)
     {

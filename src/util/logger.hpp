@@ -9,7 +9,7 @@
 #include <ostream>
 #include <thread>
 #include <atomic>
-#include <sstream>
+#include <fstream>
 
 // Use chrono if we upgrade to c++20
 #include <time.h> // for time formatting
@@ -69,11 +69,10 @@ class LoggerPrinter: public std::ostream
             std::lock_guard<std::mutex> guard(new_logs_lock);
             new_logs.emplace_back(message);
         }
-        LoggerPrinter& operator=(std::ostream&& rhs)
+        std::streambuf* swap(std::streambuf *sb)
         {
             std::lock_guard<std::mutex> guard(new_logs_lock);
-            std::ostream::operator=(std::move(rhs));
-            return *this;
+            return this->rdbuf(sb);
         }
     protected:
         void stop()
@@ -120,7 +119,7 @@ class Logger
         }
         void info(std::string message)
         {
-            if (log_level <= Logger::INFO)
+            // if (log_level <= Logger::INFO)
                 output_message(std::move(message));
         }
         void warn(std::string message)
@@ -132,9 +131,15 @@ class Logger
         {
             output_message(std::move(message));
         }
-        void change_stream(std::ostream&& rhs)
+        void use_stdout()
         {
-            printer = std::move(rhs);
+            printer.swap(std::cout.rdbuf());
+        }
+        void use_file(const char* filename, bool append=false)
+        {
+            std::filebuf *fb = new std::filebuf;
+            fb->open(filename, (append)?(std::ios_base::app):(std::ios_base::out));
+            printer.swap(fb);
         }
         static const short DEBUG {0x0};
         static const short INFO  {0x1};
@@ -149,7 +154,7 @@ class Logger
         }
     private:
         formatter_func formatter {default_formatter};
-        short log_level {Logger::INFO};
+        short log_level {Logger::DEBUG};
         std::shared_ptr<std::string> tag {std::make_shared<std::string>("tag")};
         static LoggerPrinter printer;
 };
