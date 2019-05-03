@@ -119,7 +119,7 @@ class Logger
         }
         void info(std::string message)
         {
-            // if (log_level <= Logger::INFO)
+            if (log_level <= Logger::INFO)
                 output_message(std::move(message));
         }
         void warn(std::string message)
