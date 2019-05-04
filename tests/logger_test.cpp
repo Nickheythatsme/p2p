@@ -1,4 +1,6 @@
-// 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cert-err58-cpp"
+//
 // Nicholas Grout 4/30
 //
 #include "gtest/gtest.h"
@@ -128,8 +130,9 @@ TEST(Logger, Speed) {
 }
 
 TEST(Logger, OutputFormat) {
-    Logger logger("output", Logger::INFO);
+  Logger logger("output");
     Logger::add_file("output-test.out", false);
+  Logger::log_level = Logger::INFO;
 
     logger.debug("debug");
     logger.info("info");
@@ -156,10 +159,10 @@ TEST(Logger, OutputFormat) {
 
     if (lines.size() != 3)
     {
-        FAIL() << "Number of outputted lines was incorrect (expected 4 but got " << lines.size() << ")";
+      FAIL() << "Number of outputted lines was incorrect (expected 3 but got " << lines.size() << ")";
     }
 
-    const char* time_check = "^(\\[\\d\\d:\\d\\d:\\d\\d\\])(.*)";
+  const char *time_check = R"(^(\[\d\d:\d\d:\d\d\])(.*))";
     const char* message_check = "(.*)(\\S+)$";
     for (const auto &line : lines)
     {
@@ -172,5 +175,6 @@ TEST(Logger, OutputFormat) {
             FAIL() << "Message was missing from log line: \"" << line << "\"";
         }
     }
-
 }
+
+#pragma clang diagnostic pop
