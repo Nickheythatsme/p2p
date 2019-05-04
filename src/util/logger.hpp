@@ -23,7 +23,12 @@ std::string default_formatter(const std::string& tag, const std::string& message
 {
     // TODO add time formatting
     std::stringstream ss;
-    ss << tag << ":" << message;
+    const char* time_fmt = "%H:%M:%S";
+    time_t current_time_t = time(nullptr);
+    auto current_time_tm = gmtime(&current_time_t);
+    char formatted_time[9];
+    strftime(formatted_time, 9, time_fmt, current_time_tm);
+    ss << "[" << formatted_time << "] [" << tag << "] " << message;
     return ss.str();
 }
 
@@ -50,11 +55,10 @@ class NewLog
         formatter_func formatter;
 };
 
-class LoggerPrinter: public std::ostream
+class LoggerPrinter
 {
     public:
-        explicit LoggerPrinter(std::streambuf *sb):
-            std::ostream(sb),
+        explicit LoggerPrinter():
             logging_thread(&LoggerPrinter::run, this)
         {
         }
@@ -69,10 +73,43 @@ class LoggerPrinter: public std::ostream
             std::lock_guard<std::mutex> guard(new_logs_lock);
             new_logs.emplace_back(message);
         }
-        std::streambuf* swap(std::streambuf *sb)
+        bool add_ostream(std::string &&key, std::unique_ptr<std::ostream> &&out)
         {
-            std::lock_guard<std::mutex> guard(new_logs_lock);
-            return this->rdbuf(sb);
+            std::lock_guard<std::mutex> output_guard(output_streams_lock);
+            if (output_streams.count(key) > 0)
+            {
+                // Don't open the file because we're already logging to it
+                return true;
+            }
+            else if (out->good())
+            {
+                output_streams.insert(
+                    std::make_pair(std::move(key), std::move(out))
+                );
+                // Return true if success
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        bool remove_ostream(const std::string& key)
+        {
+            std::lock_guard<std::mutex> output_guard(output_streams_lock);
+            return output_streams.erase(key) > 0;
+        }
+        bool add_file(const char* filename, bool append)
+        {
+            using o_uptr = std::unique_ptr<std::ostream>;
+            o_uptr fout(new std::ofstream(filename, (append) ? (std::ios_base::app) : (std::ios_base::out)));
+            return add_ostream(filename, std::move(fout));
+        }
+        bool add_console()
+        {
+            using o_uptr = std::unique_ptr<std::ostream>;
+            auto sb = std::cout.rdbuf(nullptr);
+            return add_ostream("COUT CONSOLE", o_uptr(new std::ostream(sb)));
         }
     protected:
         void stop()
@@ -84,14 +121,19 @@ class LoggerPrinter: public std::ostream
         void run()
         {
             do {
+                // Wait for a period of time
                 std::this_thread::sleep_for(std::chrono::milliseconds(OUTPUT_FREQ));
                 std::unique_lock<std::mutex> guard(new_logs_lock);
                 std::vector<NewLog> to_output(std::move(new_logs));
                 guard.unlock();
 
-                for(const auto &message : to_output)
+                std::lock_guard<std::mutex> output_guard(output_streams_lock);
+                for (auto& out : output_streams)
                 {
-                    *this << message << std::endl;
+                    for(const auto &message : to_output)
+                    {
+                        *out.second << message << std::endl;
+                    }
                 }
             } while(running);
         }
@@ -100,6 +142,8 @@ class LoggerPrinter: public std::ostream
         std::vector<NewLog> new_logs;
         std::atomic<bool> running {true};
         std::thread logging_thread;
+        std::mutex output_streams_lock;
+        std::map<std::string, std::unique_ptr<std::ostream>> output_streams;
 };
 
 class Logger
@@ -108,7 +152,7 @@ class Logger
         Logger() = default;
         ~Logger() = default;
         Logger(std::string tag, short log_level):
-            tag(std::make_shared<std::string>(std::string(tag))),
+            tag(std::make_shared<std::string>(std::move(tag))),
             log_level(log_level)
         {
         }
@@ -131,15 +175,17 @@ class Logger
         {
             output_message(std::move(message));
         }
-        void use_stdout()
+        static void set_formatter(formatter_func func)
         {
-            printer.swap(std::cout.rdbuf());
+            formatter = func;
         }
-        void use_file(const char* filename, bool append=false)
+        static bool add_file(const char* filename, bool append=true)
         {
-            std::filebuf *fb = new std::filebuf;
-            fb->open(filename, (append)?(std::ios_base::app):(std::ios_base::out));
-            printer.swap(fb);
+            return printer.add_file(filename, append);
+        }
+        static bool use_console()
+        {
+            return printer.add_console();
         }
         static const short DEBUG {0x0};
         static const short INFO  {0x1};
@@ -149,17 +195,18 @@ class Logger
         void output_message(std::string &&message)
         {
             printer.add_log(
-                NewLog(message, tag, formatter)
+                NewLog(std::move(message), tag, formatter)
             );
         }
     private:
-        formatter_func formatter {default_formatter};
+        static formatter_func formatter;
         short log_level {Logger::DEBUG};
         std::shared_ptr<std::string> tag {std::make_shared<std::string>("tag")};
         static LoggerPrinter printer;
 };
 
-LoggerPrinter Logger::printer(nullptr);
+LoggerPrinter Logger::printer;
+formatter_func Logger::formatter {default_formatter};
 
 } // namespace p2p
 #endif // P2P_LOGGER_
