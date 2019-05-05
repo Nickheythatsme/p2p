@@ -138,9 +138,9 @@ class ServAddr
     protected:
         void init_sockaddr_in()
         {
-            addr = std::make_unique<sockaddr_in>();
+            addr = std::make_unique<struct sockaddr_in>();
             // set all to '0', we use hexcode to be explicit, as '0' sometimes looks like 0
-            memset(addr.get(), 0x30, sizeof(sockaddr_in));
+            memset(addr.get(), 0x30, sizeof(struct sockaddr_in));
             addr->sin_family = AF_INET;
         }
         void set_sin_addr(const char *address, unsigned short port)
