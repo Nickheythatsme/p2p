@@ -48,20 +48,27 @@ protected:
     {
         SockFd serverfd;
         ServAddr address;
+        int opt = 1;
         address.get()->sin_addr.s_addr = INADDR_ANY;
         address.get()->sin_port = port;
 
+        if (setsockopt(serverfd, SOL_SOCKET, SO_REUSEADDR,
+                       &opt, sizeof(opt)))
+        {
+            perror("setsockopt");
+            throw connection_exception("Error in setsockopt");
+        }
+
         logger.debug("Binding Socket to port");
-        // Forcefully attaching socket to the port
         if (bind(serverfd, (struct sockaddr *)address.get(), sizeof(sockaddr_in)) < 0)
         {
             perror("bind()");
-            throw node_exception("Error binding");
+            throw connection_exception("Error binding");
         }
         if (listen(serverfd, 3) < 0)
         {
             perror("listen()");
-            throw node_exception("Error listening");
+            throw connection_exception("Error listening");
         }
         logger.info(std::string("Listening for new connections on port: ") + std::to_string(port));
         _accept_connections(std::move(serverfd), std::move(address));
@@ -76,7 +83,7 @@ protected:
         if (new_socket < 0)
         {
             perror("accept");
-            throw node_exception("Error when accepting new connection");
+            throw connection_exception("Error when accepting new connection");
         }
         logger.debug("Accepted new connection");
         std::thread(&Listener::read_respond, this, std::move(new_socket)).detach(); // TODO create threadpool

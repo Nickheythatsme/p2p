@@ -21,7 +21,7 @@ TEST(Node, InvalidAddress) {
         Node n("ffff.8.8.8", 0);
         n.ping();
     }
-    catch(const node_exception &e) {
+    catch(const connection_exception &e) {
         // Pass if we make it here and end test
         SUCCEED() << "Exception was thrown when it was suppossed to";
         return;
@@ -41,7 +41,7 @@ TEST(Node, PingTest) {
         Node n(address, port);
         n.ping();
     }
-    catch(const node_exception &e) {
+    catch(const connection_exception &e) {
         logger.warn(std::string("Node ping failed: ") + e.what());
         // TODO Ignoring failure for now
         // FAIL() << e.what();

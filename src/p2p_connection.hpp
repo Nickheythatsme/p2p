@@ -22,12 +22,12 @@
 namespace p2p {
 
 // Classes used for exception handling
-class node_exception: public std::exception
+class connection_exception: public std::exception
 {
     public:
-        node_exception() noexcept:
+        connection_exception() noexcept:
             msg(nullptr) {}
-        explicit node_exception(const char *msg) noexcept:
+        explicit connection_exception(const char *msg) noexcept:
             msg(msg) {}
         virtual const char* what() const noexcept override
         {
@@ -41,22 +41,13 @@ class node_exception: public std::exception
         const char *msg;
 };
 
-class socket_exception: public node_exception
+class socket_exception: public connection_exception
 {
     public:
         socket_exception() noexcept:
-            msg(nullptr),
-            error_at_init(errno)
-        { }
-        socket_exception(const char* msg) noexcept:
-            msg(msg),
             error_at_init(errno)
         { }
         const char* what() const noexcept override {
-            if (msg)
-            {
-                return msg;
-            }
             switch (error_at_init) {
                 case EACCES: return "Error creating socket: permission denied";
                 case ENFILE: return "Error creating socket: The system file table is full.";
@@ -69,7 +60,6 @@ class socket_exception: public node_exception
             }
         }
     private:
-        const char* msg;
         int error_at_init;
 };
 
@@ -158,7 +148,7 @@ class ServAddr
             if (!addr) return;
             addr->sin_port = port;
             if (inet_pton(AF_INET, address, &addr->sin_addr) == 0) {
-                throw node_exception("Invalid ip address");
+                throw connection_exception("Invalid ip address");
             }
         }
     private:
