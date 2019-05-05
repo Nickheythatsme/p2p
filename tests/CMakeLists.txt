@@ -28,7 +28,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 
 
 ### Add/Make tests
-add_executable(example_test example_test.cpp)
+add_executable(example_test example_test.cpp listener_test.cpp)
 target_link_libraries(example_test gtest_main)
 add_test(NAME example_test COMMAND example_test)
 
@@ -43,5 +43,9 @@ add_test(NAME server_test COMMAND server_test)
 add_executable(logger_test logger_test.cpp)
 target_link_libraries(logger_test gtest_main)
 add_test(NAME logger_test COMMAND logger_test)
+
+add_executable(listener_test listener_test.cpp)
+target_link_libraries(listener_test gtest_main)
+add_test(NAME listener_test COMMAND listener_test)
 ### END Add/Make tests
 

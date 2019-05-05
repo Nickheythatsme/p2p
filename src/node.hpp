@@ -33,15 +33,14 @@ class Node
         bool ping()
         {
             SockFd fd;
+            logger.debug("Created socket");
             _connect(fd);
+            logger.debug("Connected to node");
             // TODO error handling
-            /*
-            send(sockfd.get(), "ping!", strlen("ping!"), 0);
-            logger.info("Ping sent");
+            send(fd.get(), "ping!", strlen("ping!"), 0);
             char buffer[1024];
-            ssize_t valread = read(sockfd.get(), buffer, 1024);
+            ssize_t valread = read(fd.get(), buffer, 1024);
             logger.info(std::string("Response buffer: ") + std::string(buffer));
-            */
             return true;
         }
     protected:
@@ -49,9 +48,7 @@ class Node
         {
             logger.debug("Connecting to node");
             if (connect(sockfd.get(), (struct sockaddr *)addr.get(), sizeof(sockaddr_in)) < 0) {
-                socket_exception se;
-                logger.warn(std::string("Error trying to connect to node:") + se.what());
-                throw se;
+                throw socket_exception();
             }
         }
         time_t last_contact;
