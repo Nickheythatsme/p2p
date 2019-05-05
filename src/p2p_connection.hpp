@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 #include <exception>
-#include <string>
+#include <cstring>
 
 // For socket info
 #include <unistd.h>
