@@ -32,7 +32,7 @@ class Node
         // Ping another node
         bool ping()
         {
-            SockFd fd
+            SockFd fd;
             _connect(fd);
             // TODO error handling
             /*
