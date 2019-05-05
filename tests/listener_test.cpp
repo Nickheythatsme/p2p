@@ -14,12 +14,15 @@ TEST(Listener, Smoke)
     Listener listener;
 }
 
-
-TEST(Listener, ping)
+TEST(Listener, handle_stop)
 {
     Logger logger("Main");
     Logger::use_console();
     Listener listener;
+    logger.info("Starting listening");
     listener.start_listening(8080);
-}
 
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    logger.info("Stopping listening");
+    listener.stop_listening();
+}

@@ -62,7 +62,7 @@ class socket_exception: public node_exception
                 case ENFILE: return "Error creating socket: The system file table is full.";
                 case ENOBUFS:return "Error creating socket: Insufficient buffer space";
                 case ENOMEM: return "Error creating socket: Insufficient memory to complete operation";
-                case ECONNREFUSED: return "Error connecting: Connection refuested by server";
+                case ECONNREFUSED: return "Error connecting: Connection refused by server";
                 case ENETUNREACH: return "Error connecting: Network unreachable";
                 default:     return "Unknown socket error";
 

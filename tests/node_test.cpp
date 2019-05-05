@@ -33,9 +33,12 @@ TEST(Node, InvalidAddress) {
 TEST(Node, PingTest) {
     Logger logger("Main");
     Logger::use_console();
-    const char* address ="127.0.0.1";
+    // const char* address ="34.209.23.211";
+    // int port = 25565;
+    const char* address = "127.0.0.1";
+    int port = 8080;
     try {
-        Node n(address, 8080);
+        Node n(address, port);
         n.ping();
     }
     catch(const node_exception &e) {

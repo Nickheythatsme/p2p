@@ -12,8 +12,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
+#include <csignal>
 
 
 namespace p2p {
@@ -27,47 +28,58 @@ public:
     }
     ~Listener()
     {
+        stop_listening();
+    }
+    void stop_listening()
+    {
         if (listener_thread && listener_thread->joinable())
         {
-            logger.debug("Joining listener_thread");
+            logger.debug("Stopping listener_thread");
+            auto listener_thread_handle = listener_thread->native_handle();
+            // TODO implement signal handler
+            // pthread_kill(listener_thread_handle, SIGINT);
+            pthread_cancel(listener_thread_handle);
             listener_thread->join();
+            listener_thread.reset(nullptr);
         }
     }
 protected:
     void _start_listening(int port)
     {
-        logger.info("Starting listening");
         SockFd serverfd;
         ServAddr address;
         address.get()->sin_addr.s_addr = INADDR_ANY;
         address.get()->sin_port = port;
 
         logger.debug("Binding Socket to port");
-        // Forcefully attaching socket to the port 8080
-        if (bind(serverfd, (struct sockaddr *)address.get(),
-                 sizeof(sockaddr_in))<0)
+        // Forcefully attaching socket to the port
+        if (bind(serverfd, (struct sockaddr *)address.get(), sizeof(sockaddr_in)) < 0)
         {
+            perror("bind()");
             throw node_exception("Error binding");
         }
-        logger.debug("Listening for new connections");
         if (listen(serverfd, 3) < 0)
         {
-            perror("listen");
-            return;
+            perror("listen()");
+            throw node_exception("Error listening");
         }
+        logger.info(std::string("Listening for new connections on port: ") + std::to_string(port));
+        _accept_connections(std::move(serverfd), std::move(address));
+    }
+    void _accept_connections(SockFd&& fd, ServAddr&& addr)
+    {
+        // Register interrupt handler
+        logger.debug("waiting for new connections");
         auto sockaddr_in_size = sizeof(struct sockaddr_in);
         logger.debug("Accepting new connections");
-        while (running)
+        SockFd new_socket(accept(fd, (struct sockaddr *)addr.get(), (socklen_t*)&sockaddr_in_size));
+        if (new_socket < 0)
         {
-            SockFd new_socket(accept(serverfd, (struct sockaddr *)address.get(), (socklen_t*)&sockaddr_in_size));
-            if (new_socket < 0)
-            {
-                perror("accept");
-                return;
-            }
-            logger.debug("Accepted new connection");
-            std::thread(&Listener::read_respond, this, std::move(new_socket)).detach();
+            perror("accept");
+            throw node_exception("Error when accepting new connection");
         }
+        logger.debug("Accepted new connection");
+        std::thread(&Listener::read_respond, this, std::move(new_socket)).detach(); // TODO create threadpool
     }
     bool read_respond(SockFd&& fd)
     {
@@ -82,7 +94,6 @@ protected:
 private:
     static Logger logger;
     std::unique_ptr<std::thread> listener_thread {nullptr};
-    std::atomic<bool> running {true};
 };
 
 Logger Listener::logger("Listener");

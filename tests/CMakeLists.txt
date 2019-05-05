@@ -36,10 +36,6 @@ add_executable(node_test node_test.cpp)
 target_link_libraries(node_test gtest_main)
 add_test(NAME node_test COMMAND node_test)
 
-add_executable(server_test server_test.cpp)
-target_link_libraries(server_test gtest_main)
-add_test(NAME server_test COMMAND server_test)
-
 add_executable(logger_test logger_test.cpp)
 target_link_libraries(logger_test gtest_main)
 add_test(NAME logger_test COMMAND logger_test)
