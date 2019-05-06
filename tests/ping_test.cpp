@@ -21,4 +21,5 @@ TEST(Listener, ping_test)
     std::this_thread::sleep_for(std::chrono::seconds(1)); // give thread time to start
     node.ping();
     listener.stop_listening();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // give logs time to output
 }
