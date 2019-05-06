@@ -1,21 +1,25 @@
 language: cpp
 dist: trusty
-sudo: false
+sudo: true
+compiler: gcc
 
 matrix:
   include:
     - env: COMPILER=g++-6 BUILD=Debug STANDARD=17
       os: linux
-      compiler: gcc
       addons:
         apt:
+          update: true
           packages:
             - build-essential
             - cmake
-            - libboost-all-dev
     - env: COMPILER=g++-6 BUILD=Debug STANDARD=17
       os: osx
-      compiler: gcc
+      addons:
+        homebrew:
+          update: true
+          packages:
+            - cmake
 
 
-script: cmake . && make && make test
+script: cmake . && make && sudo make test
