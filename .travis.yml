@@ -1,5 +1,5 @@
 language: cpp
-dist: trusty
+dist: xenial
 sudo: true
 compiler: gcc
 
@@ -11,7 +11,7 @@ matrix:
         apt:
           update: true
           packages:
-            - build-essential
+            - g++-5
             - cmake
     - env: COMPILER=g++-6 BUILD=Debug STANDARD=17
       os: osx
