@@ -18,6 +18,7 @@ TEST(Listener, ping_test)
     Node node("127.0.0.1", port);
 
     listener.start_listening(port);
+    std::this_thread::sleep_for(std::chrono::seconds(1)); // give thread time to start
     node.ping();
     listener.stop_listening();
 }
