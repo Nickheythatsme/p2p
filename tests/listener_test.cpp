@@ -7,12 +7,14 @@
 #include "gtest/gtest.h"
 
 using namespace p2p;
+#define PAUSE std::this_thread::sleep_for(std::chrono::milliseconds(100)) // give logs time to output
 
 TEST(Listener, Smoke)
 {
     Logger logger("Main");
     Logger::use_console();
     Listener listener;
+    PAUSE;
 }
 
 TEST(Listener, handle_stop)
@@ -23,8 +25,8 @@ TEST(Listener, handle_stop)
     logger.info("Starting listener");
     listener.start_listening(8080);
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    PAUSE;
     logger.info("Stopping listener");
     listener.stop_listening();
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    PAUSE;
 }

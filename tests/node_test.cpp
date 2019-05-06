@@ -9,6 +9,7 @@
 #include <iostream>
 
 using namespace p2p;
+#define PAUSE std::this_thread::sleep_for(std::chrono::milliseconds(100)) // give logs time to output
 
 TEST(Node, SmokeTest) {
     Node *n = new Node("0.0.0.0", 0);
@@ -23,18 +24,18 @@ TEST(Node, InvalidAddress) {
     }
     catch(const connection_exception &e) {
         // Pass if we make it here and end test
+        PAUSE;
         SUCCEED() << "Exception was thrown when it was suppossed to";
         return;
     }
     // Fail if we make it here
+    PAUSE;
     FAIL() << "Exception was not thrown for invalid IP address";
 }
 
 TEST(Node, PingTest) {
     Logger logger("Main");
     Logger::use_console();
-    // const char* address ="34.209.23.211";
-    // int port = 25565;
     const char* address = "127.0.0.1";
     int port = 8080;
     try {
@@ -46,6 +47,7 @@ TEST(Node, PingTest) {
         // TODO Ignoring failure for now
         // FAIL() << e.what();
     }
+    PAUSE;
 }
 
 #pragma clang diagnostic pop
