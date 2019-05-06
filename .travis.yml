@@ -1,6 +1,6 @@
 language: cpp
 dist: xenial
-sudo: true
+sudo: false
 compiler: gcc
 
 matrix:
