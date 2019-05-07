@@ -34,7 +34,12 @@ class Node
         {
             SockFd fd;
             logger.debug("Created socket");
-            _connect(fd);
+            // Connect
+            logger.debug("Connecting to node");
+            if (connect(fd.get(), (struct sockaddr *)addr.get(), sizeof(sockaddr_in)) < 0) {
+                logger.debug(std::string("Could not connect: ") + connection_exception().what());
+                return false;
+            }
             logger.debug("Connected to node");
             // TODO error handling
             send(fd.get(), "ping!", strlen("ping!"), 0);
@@ -44,13 +49,6 @@ class Node
             return true;
         }
     protected:
-        void _connect(SockFd& sockfd)
-        {
-            logger.debug("Connecting to node");
-            if (connect(sockfd.get(), (struct sockaddr *)addr.get(), sizeof(sockaddr_in)) < 0) {
-                throw socket_exception();
-            }
-        }
         time_t last_contact;
         ServAddr addr;
     private:
