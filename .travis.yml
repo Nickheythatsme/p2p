@@ -22,4 +22,4 @@ matrix:
             - cmake
 
 
-script: cmake . && make && sudo make test
+script: cmake . && make && ctest -VV
