@@ -21,16 +21,16 @@
 
 namespace p2p {
 
-class Node: public client_connection
+class Node: public p2p::P2pConnection
 {
     public:
-        Node(const char* ip, unsigned short int port):
-            client_connection(ip, port),
+        Node(const char* ip, const char* port):
+            P2pConnection(ip, port),
             last_contact(0)
         {
         }
-        Node(Node&& rhs) :
-            client_connection(std::move(rhs)),
+        Node(Node&& rhs) noexcept :
+            P2pConnection(std::move(rhs)),
             last_contact(rhs.last_contact)
         {
             rhs.last_contact = 0;

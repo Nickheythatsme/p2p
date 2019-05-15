@@ -13,7 +13,7 @@ using namespace p2p;
 #define PAUSE(T) (std::this_thread::sleep_for(std::chrono::milliseconds(T)))
 
 TEST(Node, SmokeTest) {
-    Node *n = new Node("0.0.0.0", 8080);
+    Node *n = new Node("0.0.0.0", std::to_string(8080));
     delete n;
 }
 
@@ -35,7 +35,7 @@ TEST(Node, InvalidAddress) {
     for (const std::string addr : good_addresses)
     {
         try {
-            Node n(addr.c_str(), 8080);
+            Node n(addr.c_str(), std::to_string(8080));
         }
         catch(const connection_exception &e) {
             logger.info(std::string("Exception thrown: ") + e.what());
@@ -48,7 +48,7 @@ TEST(Node, InvalidAddress) {
     for (const std::string addr : bad_addresses)
     {
         try {
-            Node n(addr.c_str(), 8080);
+            Node n(addr.c_str(), std::to_string(8080));
             PAUSE(100);
             FAIL() << "Exception was not thrown for invalid IP address";
         }
@@ -95,7 +95,7 @@ TEST(Node, SocketLeakage)
 
         for (int i=0; i<100; ++i)
         {
-            nodes.emplace_back("255.255.255.255", 8080);
+            nodes.emplace_back("255.255.255.255", std::to_string(8080));
         }
         PAUSE(1000);
         std::stringstream ss;
@@ -118,7 +118,7 @@ TEST(Node, SocketAllocError)
     try {
         for (unsigned i = 0; i < 0xFFFF; ++i)
         {
-            nodes.emplace_back(Node("255.255.255.255", 8080));
+            nodes.emplace_back(Node("255.255.255.255", std::to_string(8080)));
             i++;
             if (i % 1000 == 0)
             {

@@ -19,12 +19,18 @@
 
 namespace p2p {
 
-class Listener
+class Listener: public P2pConnection
 {
 public:
-    void start_listening(unsigned short int port)
+    Listener(const char* cport) noexcept:
+        port(cport),
+        P2pConnection(nullptr, cport)
     {
-        listener_thread = std::make_unique<std::thread>(&Listener::_start_listening, this, port);
+
+    }
+    void start_listening()
+    {
+        listener_thread = std::make_unique<std::thread>(&Listener::_start_listening, this);
     }
     ~Listener()
     {
@@ -44,15 +50,10 @@ public:
         }
     }
 protected:
-    void _start_listening(unsigned short int port)
+    void _start_listening()
     {
-        SockFd serverfd;
-        ServAddr address;
         int opt = 1;
-        address.get()->sin_addr.s_addr = INADDR_ANY;
-        address.get()->sin_port = htons(port);
-
-        if (setsockopt(serverfd, SOL_SOCKET, SO_REUSEADDR,
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
                        &opt, sizeof(opt)))
         {
             perror("setsockopt");
@@ -60,51 +61,49 @@ protected:
         }
 
         logger.debug("Binding Socket to port");
-        if (bind(serverfd, (struct sockaddr *)address.get(), sizeof(sockaddr_in)) < 0)
+        if (bind(sockfd, addr->ai_addr, addr->ai_addrlen) < 0)
         {
             perror("bind()");
             throw connection_exception("Error binding");
         }
-        if (listen(serverfd, 3) < 0)
+        if (listen(sockfd, 3) < 0)
         {
             perror("listen()");
             throw connection_exception("Error listening");
         }
-        logger.info(std::string("Listening for new connections on port: ") + std::to_string(port));
-        _accept_connections(std::move(serverfd), std::move(address));
+        logger.info(std::string("Listening for new connections on port"));
     }
-    void _accept_connections(SockFd&& fd, ServAddr&& addr)
+    void _accept_connections()
     {
         // Register interrupt handler
-        logger.debug("waiting for new connections");
-        auto sockaddr_in_size = sizeof(struct sockaddr_in);
-        logger.debug("Accepting new connections");
-        SockFd new_socket(accept(fd, (struct sockaddr *)addr.get(), (socklen_t*)&sockaddr_in_size));
+        logger.debug("Waiting for new connections");
+        int new_socket = accept(sockfd, addr->ai_addr, addr->ai_addrlen);
         if (new_socket < 0)
         {
             perror("accept");
             throw connection_exception("Error when accepting new connection");
         }
         logger.debug("Accepted new connection");
-        std::thread(&Listener::read_respond, this, std::move(new_socket)).detach(); // TODO create threadpool
+        std::thread(&Listener::read_respond, this, new_socket).detach(); // TODO create threadpool
     }
-    bool read_respond(SockFd&& fd)
+    bool read_respond(int new_socket)
     {
         // Reading
         char buffer[1024];
-        read(fd.get(), buffer, 1024);
+        read(new_socket, buffer, 1024);
         logger.debug(std::string("Request: ") + buffer);
-        send(fd.get(), "pong", strlen("pong"), 0);
+        send(new_socket, "pong", strlen("pong"), 0);
         logger.debug("Response sent");
+        close(new_socket);
         return true;
     }
 private:
     static Logger logger;
     std::unique_ptr<std::thread> listener_thread {nullptr};
+    std::string port;
 };
 
 Logger Listener::logger("Listener");
-
 
 } // namespace p2p
 #endif //LISTENER_HPP
