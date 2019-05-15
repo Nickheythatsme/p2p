@@ -48,7 +48,6 @@ public:
         }
         if (listen(sockfd, BACKLOG) < 0)
         {
-            perror("listen");
             throw connection_exception("Error listening");
         }
         // get host name and port message
@@ -90,7 +89,6 @@ protected:
             int new_socket = accept(sockfd, addr->ai_addr, &addr->ai_addrlen);
             if (new_socket < 0)
             {
-                perror("accept");
                 throw connection_exception("Error when accepting new connection");
             }
             logger.debug("Accepted new connection");
@@ -107,7 +105,7 @@ protected:
             char buffer[1024];
             if ( (bytes_read = recv(new_socket, buffer, 1024, MSG_DONTWAIT)) < 0) {
                 if (errno != EAGAIN && errno != EWOULDBLOCK) {
-                    perror("recv");
+                    logger.warn(std::string("Encountered error receiving: ") + connection_exception().what());
                     return false;
                 }
                 bytes_read = 0;

@@ -37,8 +37,7 @@ class Node: public P2pConnection
             logger.debug("Connected to node");
             // TODO error handling
             if ( send(sockfd, "ping!", strlen("ping!"), MSG_NOSIGNAL) < 0) {
-                perror("send");
-                logger.info("send to another node failed");
+                logger.info(std::string("send to another node failed: ") + connection_exception().what());
                 return false;
             }
             char buffer[1024];
@@ -65,8 +64,7 @@ class Node: public P2pConnection
 
             if (!connected) _connect();
             if (send(sockfd, contents, flen, MSG_NOSIGNAL) < 0) {
-                perror("send");
-                logger.info("send to another node failed");
+                logger.info(std::string("send to another node failed") + connection_exception().what());
                 return false;
             }
             char buffer[1024];
@@ -79,7 +77,6 @@ class Node: public P2pConnection
         void _connect()
         {
             if (connect(sockfd, addr->ai_addr, addr->ai_addrlen) < 0) {
-                perror("connect");
                 std::stringstream ss;
                 ss << "Could not connect: " << connection_exception().what();
                 logger.debug(ss.str());
