@@ -12,7 +12,6 @@ using namespace p2p;
 
 TEST(Listener, ping_test_ipv4)
 {
-    signal(SIGPIPE, SIG_IGN);
     Logger logger("Main");
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
@@ -58,7 +57,6 @@ TEST(Listener, ping_test_ipv6)
 
 TEST(Listener, SendFile)
 {
-    signal(SIGPIPE, SIG_IGN);
     Logger logger("Main");
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
