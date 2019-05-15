@@ -22,7 +22,7 @@
 #if defined __apple__
 #define NOSIGPIPE SO_NOSIGPIPE
 #elif defined __linux__
-#define NOSIGPIPE MSG_NOSIGPIPE
+#define NOSIGPIPE MSG_NOSIGNAL
 #endif
 
 
