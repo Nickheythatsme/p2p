@@ -22,7 +22,7 @@ namespace p2p {
 class Listener
 {
 public:
-    void start_listening(int port)
+    void start_listening(unsigned short int port)
     {
         listener_thread = std::make_unique<std::thread>(&Listener::_start_listening, this, port);
     }
@@ -44,13 +44,13 @@ public:
         }
     }
 protected:
-    void _start_listening(int port)
+    void _start_listening(unsigned short int port)
     {
         SockFd serverfd;
         ServAddr address;
         int opt = 1;
         address.get()->sin_addr.s_addr = INADDR_ANY;
-        address.get()->sin_port = port;
+        address.get()->sin_port = htons(port);
 
         if (setsockopt(serverfd, SOL_SOCKET, SO_REUSEADDR,
                        &opt, sizeof(opt)))

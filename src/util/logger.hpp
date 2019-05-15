@@ -155,8 +155,7 @@ class Logger
 public:
     Logger() = default;
     ~Logger() = default;
-    explicit Logger(const std::string &tag)
-        :
+    explicit Logger(const std::string &tag):
         tag(std::make_shared<std::string>(tag))
     {
     }
@@ -197,8 +196,7 @@ public:
     static const short CRIT;
     static short log_level;
 protected:
-    void
-    output_message(std::string &&message)
+    void output_message(std::string &&message)
     {
         printer.add_log(
             NewLog(std::move(message), tag, formatter)

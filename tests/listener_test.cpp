@@ -12,6 +12,7 @@ using namespace p2p;
 TEST(Listener, Smoke)
 {
     Logger logger("Main");
+    Logger::log_level = Logger::DEBUG;
     Logger::use_console();
     Listener listener;
     PAUSE;
@@ -21,6 +22,7 @@ TEST(Listener, handle_stop)
 {
     Logger logger("Main");
     Logger::use_console();
+    Logger::log_level = Logger::DEBUG;
     Listener listener;
     logger.info("Starting listener");
     listener.start_listening(8080);

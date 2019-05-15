@@ -7,47 +7,133 @@
 #include "gtest/gtest.h"
 #include "../src/node.hpp"
 #include <iostream>
+#include <fstream>
 
 using namespace p2p;
-#define PAUSE std::this_thread::sleep_for(std::chrono::milliseconds(100)) // give logs time to output
+#define PAUSE(T) (std::this_thread::sleep_for(std::chrono::milliseconds(T)))
 
 TEST(Node, SmokeTest) {
-    Node *n = new Node("0.0.0.0", 0);
+    Node *n = new Node("0.0.0.0", 8080);
     delete n;
 }
 
 TEST(Node, InvalidAddress) {
     Logger logger("Main");
-    try {
-        Node n("ffff.8.8.8", 0);
-        n.ping();
+    Logger::use_console();
+    std::vector<std::string> good_addresses {
+        "19.117.63.126",
+        "255.255.253.0",
+        "FE80:0000:0000:0000:0202:B3FF:FE1E:8329",
+        "FE80::0202:B3FF:FE1E:8329"
+    };
+    std::vector<std::string> bad_addresses {
+        "ffff.8.8.8.8",
+        "FZ180:0000:0000:0000:0202:B3FF:FE1E:8329"
+    };
+
+    // Should not fail
+    for (const std::string addr : good_addresses)
+    {
+        try {
+            Node n(addr.c_str(), 8080);
+        }
+        catch(const connection_exception &e) {
+            logger.info(std::string("Exception thrown: ") + e.what());
+            PAUSE(100);
+            FAIL() << "Exception was thrown when it was suppossed to";
+        }
     }
-    catch(const connection_exception &e) {
-        // Pass if we make it here and end test
-        PAUSE;
-        SUCCEED() << "Exception was thrown when it was suppossed to";
-        return;
+
+    // Should fail
+    for (const std::string addr : bad_addresses)
+    {
+        try {
+            Node n(addr.c_str(), 8080);
+            PAUSE(100);
+            FAIL() << "Exception was not thrown for invalid IP address";
+        }
+        catch(const connection_exception &e) {
+            std::stringstream ss;
+            ss << "Exception thrown: " << e.what() << " Address: " << addr;
+            logger.info(ss.str());
+            PAUSE(100);
+        }
     }
-    // Fail if we make it here
-    PAUSE;
-    FAIL() << "Exception was not thrown for invalid IP address";
 }
 
-TEST(Node, PingTest) {
+int get_number_of_sockets()
+{
+    std::stringstream ss;
+    ss << "ls -l /proc/" << getpid() << "/fd | grep \"socket\" > socket_count.out";
+    system(ss.str().c_str());
+
+    std::ifstream fin("socket_count.out");
+    int count=0;
+    fin.ignore(1024,'\n');
+    while (fin.good())
+    {
+        ++count;
+        fin.ignore(1024,'\n');
+    }
+    remove("socket_count.out");
+    return count;
+}
+
+TEST(Node, SocketLeakage)
+{
     Logger logger("Main");
     Logger::use_console();
-    const char* address = "127.0.0.1";
-    int port = 8080;
+
+    {
+        std::stringstream ss;
+        ss << "Using " << get_number_of_sockets() << " sockets";
+        logger.info(ss.str());
+    }
+
+    {
+        std::vector<Node> nodes;
+
+        for (int i=0; i<100; ++i)
+        {
+            nodes.emplace_back("255.255.255.255", 8080);
+        }
+        PAUSE(1000);
+        std::stringstream ss;
+        ss << "Using " << get_number_of_sockets() << " sockets";
+        logger.info(ss.str());
+    }
+
+    std::stringstream ss;
+    ss << "Using " << get_number_of_sockets() << " sockets";
+    logger.info(ss.str());
+    PAUSE(100);
+}
+
+TEST(Node, SocketAllocError)
+{
+    Logger logger("MAIN");
+    Logger::use_console();
+    std::vector<Node> nodes;
+
     try {
-        Node n(address, port);
-        n.ping();
+        for (unsigned i = 0; i < 0xFFFF; ++i)
+        {
+            nodes.emplace_back(Node("255.255.255.255", 8080));
+            i++;
+            if (i % 1000 == 0)
+            {
+                logger.info(std::to_string(i) + std::string(" sockets created"));
+            }
+        }
+    } catch(const socket_exception& e)
+    {
+        logger.info(std::string("Caught socket exception") + e.what());
+        SUCCEED() << "Successfully threw exception";
+        return;
+    } catch(const std::exception &e)
+    {
+        FAIL() << "Wrong exception was thrown";
     }
-    catch(const connection_exception &e) {
-        logger.warn(std::string("Node ping failed: ") + e.what());
-        // TODO Ignoring failure for now
-        // FAIL() << e.what();
-    }
-    PAUSE;
 }
 
 #pragma clang diagnostic pop
