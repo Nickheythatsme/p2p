@@ -77,7 +77,7 @@ class Node: public P2pConnection
             fin.read(contents, flen);
 
             if (!connected) _connect();
-            if (send(sockfd, contents, flen, 0) < 0) {
+            if (send(sockfd, contents, flen, NOSIGPIPE) < 0) {
                 perror("send");
                 logger.info("send to another node failed");
                 return false;

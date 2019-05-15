@@ -6,6 +6,7 @@
 #define LISTENER_HPP
 
 #include "util/logger.hpp"
+#include "util/config.hpp"
 #include "p2p_connection.hpp"
 #include <unistd.h>
 #include <future>
@@ -16,6 +17,12 @@
 #include <cstring>
 #include <csignal>
 
+
+#if defined __apple__
+#define NOSIGPIPE SO_NOSIGPIPE
+#elif defined __linux__
+#define NOSIGPIPE MSG_NOSIGNAL
+#endif
 
 namespace p2p {
 
@@ -107,7 +114,7 @@ protected:
             ss << buffer;
         } while (bytes_read > 0);
         logger.debug(std::string("Request: ") + ss.str());
-        send(new_socket, "pong", strlen("pong"), 0);
+        send(new_socket, "pong", strlen("pong"), NOSIGPIPE);
         logger.debug("Response sent");
         close(new_socket);
         return true;
