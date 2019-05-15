@@ -8,6 +8,7 @@
 #include <memory>
 #include <exception>
 #include <cstring>
+#include "./util/config.hpp"
 
 // For socket info
 #include <unistd.h>
@@ -20,6 +21,27 @@
 
 #ifndef P2P_PDP_CONNECTION_H
 #define P2P_PDP_CONNECTION_H
+
+#
+
+#if defined(__linux__)
+// nothing
+
+#elif defined(__apple__)
+#ifndef AF_UNSPEC
+#define AF_UNSPEC PF_UNSPEC
+#endif
+#ifndef AF_INET6
+#define AF_INET6 PF_INET6
+#endif
+/*
+#define AF_INET6 PF_INET6
+#define AF_UNSPEC PF_UNSPEC
+*/
+
+#else
+// TODO add windows support for Protocol 
+#endif
 
 namespace p2p {
 

@@ -6,8 +6,11 @@
 
 #include "gtest/gtest.h"
 #include "../src/node.hpp"
+#include "../src/util/config.hpp"
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
+#include <sys/sysctl.h>
 
 using namespace p2p;
 #define PAUSE(T) (std::this_thread::sleep_for(std::chrono::milliseconds(T)))
@@ -59,6 +62,7 @@ TEST(Node, InvalidAddress) {
             PAUSE(100);
         }
     }
+    PAUSE(100);
 }
 
 int get_number_of_sockets()
@@ -79,6 +83,9 @@ int get_number_of_sockets()
     return count;
 }
 
+
+// Skip test if not on linux, since proc is only available there
+#ifdef __linux__
 TEST(Node, SocketLeakage)
 {
     Logger logger("Main");
@@ -108,7 +115,6 @@ TEST(Node, SocketLeakage)
     logger.info(ss.str());
     PAUSE(100);
 }
-
 TEST(Node, SocketAllocError)
 {
     Logger logger("MAIN");
@@ -135,5 +141,6 @@ TEST(Node, SocketAllocError)
         FAIL() << "Wrong exception was thrown";
     }
 }
+#endif
 
 #pragma clang diagnostic pop

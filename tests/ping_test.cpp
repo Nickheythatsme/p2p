@@ -16,22 +16,28 @@ TEST(Listener, ping_test_ipv4)
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
 
-    Listener listener(PORT);
-    Node node("127.0.0.1", PORT);
-
-    listener.start_listening();
-    PAUSE(100); // Give the listener thread time to start
-    if (!node.ping())
+    try {
+        Listener listener(PORT);
+        Node node("127.0.0.1", PORT);
+        listener.start_listening();
+        PAUSE(100); // Give the listener thread time to start
+        if (!node.ping())
+        {
+            FAIL() << "ping or ping response was not successful by node.";
+            return;
+        }
+        if (!node.ping())
+        {
+            FAIL() << "ping or ping response was not successful by node.";
+            return;
+        }
+        listener.stop_listening();
+        PAUSE(100);
+    } catch(std::exception& e)
     {
-        FAIL() << "ping or ping response was not successful by node.";
+        FAIL() << "Exception thrown during ping test: " << e.what();
         return;
     }
-    if (!node.ping())
-    {
-        FAIL() << "ping or ping response was not successful by node.";
-        return;
-    }
-    listener.stop_listening();
     PAUSE(100);
 }
 

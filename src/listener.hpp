@@ -19,10 +19,11 @@
 // how long the connection queue can be before we send conn refused
 #define BACKLOG 10 
 
-#if defined __apple__
-#define NOSIGPIPE SO_NOSIGPIPE
-#elif defined __linux__
-#define NOSIGPIPE MSG_NOSIGNAL
+#if defined(__apple__)
+#define MSG_NOSIGPIPE SO_NOSIGPIPE
+#define MSG_REUSEADDR SO_REUSEADDR
+#elif defined(__linux__)
+// nothing
 #else
 // TODO add windows support for broken pipe interrupt 
 #define NOSIGPIPE 0
@@ -47,17 +48,15 @@ public:
     void start_listening()
     {
         int opt = 1;
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT|SO_REUSEADDR,
+        if (setsockopt(sockfd, SOL_SOCKET, MSG_REUSEADDR,
                        &opt, sizeof(opt)))
         {
-            perror("setsockopt");
-            throw connection_exception("Error in setsockopt");
+            throw connection_exception();
         }
 
         logger.debug("Binding Socket to port");
         if (bind(sockfd, addr->ai_addr, addr->ai_addrlen) < 0)
         {
-            perror("bind");
             throw connection_exception("Error binding");
         }
         if (listen(sockfd, BACKLOG) < 0)
@@ -130,7 +129,7 @@ protected:
             ss << buffer;
         } while (bytes_read > 0);
         logger.debug(std::string("Request: ") + ss.str());
-        send(new_socket, "pong", strlen("pong"), NOSIGPIPE);
+        send(new_socket, "pong", strlen("pong"), MSG_NOSIGPIPE);
         logger.debug("Response sent");
         close(new_socket);
         return true;
