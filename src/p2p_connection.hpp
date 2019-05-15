@@ -28,6 +28,7 @@ class connection_exception: public std::exception
 {
     public:
         connection_exception() noexcept:
+            errno_at_init(errno),
             msg(nullptr) {}
         explicit connection_exception(const char *msg) noexcept:
             msg(msg) {}
@@ -37,10 +38,11 @@ class connection_exception: public std::exception
             {
                 return msg;
             }
-            return "Unknown node exception";
+            return sys_errlist[errno];
         }
     private:
         const char *msg;
+        int errno_at_init;
 };
 
 class socket_exception: public connection_exception
