@@ -40,7 +40,9 @@ class Node: public client_connection
         {
             if (connect(sockfd, addr->ai_addr, addr->ai_addrlen) < 0) {
                 perror("connect");
-                logger.debug(std::string("Could not connect: ") + connection_exception().what());
+                std::stringstream ss;
+                ss << "Could not connect: " << connection_exception().what();
+                logger.debug(ss.str());
                 return false;
             }
             logger.debug("Connected to node");

@@ -131,10 +131,10 @@ class client_connection
 
             memset(&hint, '\0', sizeof hint);
 
-            hint.ai_family = PF_UNSPEC;
-            hint.ai_flags = 0;
-            hint.ai_protocol = 0;
+            hint.ai_family = AF_UNSPEC;
             hint.ai_socktype = SOCK_STREAM;
+            hint.ai_flags = AI_PASSIVE;
+            hint.ai_protocol = 0;
             if ( (ret = getaddrinfo(address, port, &hint, &temp_res)) )
             {
                 throw connection_exception(gai_strerror(ret));
