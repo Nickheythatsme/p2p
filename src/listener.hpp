@@ -22,6 +22,7 @@ namespace p2p {
 class Listener: public P2pConnection
 {
 public:
+    Listener() = delete;
     Listener(const char* cport) noexcept:
         port(cport),
         P2pConnection(nullptr, cport)
@@ -29,28 +30,6 @@ public:
 
     }
     void start_listening()
-    {
-        listener_thread = std::make_unique<std::thread>(&Listener::_start_listening, this);
-    }
-    ~Listener()
-    {
-        stop_listening();
-    }
-    void stop_listening()
-    {
-        if (listener_thread && listener_thread->joinable())
-        {
-            logger.debug("Stopping listener_thread");
-            auto listener_thread_handle = listener_thread->native_handle();
-            // TODO implement signal handler
-            // pthread_kill(listener_thread_handle, SIGINT);
-            pthread_cancel(listener_thread_handle);
-            listener_thread->join();
-            listener_thread.reset(nullptr);
-        }
-    }
-protected:
-    void _start_listening()
     {
         int opt = 1;
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
@@ -71,20 +50,43 @@ protected:
             perror("listen()");
             throw connection_exception("Error listening");
         }
-        logger.info(std::string("Listening for new connections on port"));
+        logger.info(std::string("Listening for new connections on port: ") + port);
+        // _accept_connections();
+        listener_thread = std::make_unique<std::thread>(&Listener::_accept_connections, this);
     }
+    ~Listener()
+    {
+        stop_listening();
+    }
+    void stop_listening()
+    {
+        if (listener_thread && listener_thread->joinable())
+        {
+            logger.debug("Stopping listener_thread");
+            auto listener_thread_handle = listener_thread->native_handle();
+            // TODO implement signal handler
+            // pthread_kill(listener_thread_handle, SIGINT);
+            pthread_cancel(listener_thread_handle);
+            listener_thread->join();
+            listener_thread.reset(nullptr);
+        }
+    }
+protected:
     void _accept_connections()
     {
-        // Register interrupt handler
+        // TODO Register interrupt handler
         logger.debug("Waiting for new connections");
-        int new_socket = accept(sockfd, addr->ai_addr, addr->ai_addrlen);
-        if (new_socket < 0)
+        for (;;)
         {
-            perror("accept");
-            throw connection_exception("Error when accepting new connection");
+            int new_socket = accept(sockfd, addr->ai_addr, &addr->ai_addrlen);
+            if (new_socket < 0)
+            {
+                perror("accept");
+                throw connection_exception("Error when accepting new connection");
+            }
+            logger.debug("Accepted new connection");
+            std::thread(&Listener::read_respond, this, new_socket).detach(); // TODO create threadpool
         }
-        logger.debug("Accepted new connection");
-        std::thread(&Listener::read_respond, this, new_socket).detach(); // TODO create threadpool
     }
     bool read_respond(int new_socket)
     {

@@ -99,7 +99,7 @@ class P2pConnection
         }
     protected:
         int sockfd;
-        std::unique_ptr<struct addrinfo, decltype(freeaddrinfo)> addr {nullptr, freeaddrinfo};
+        std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)> addr {nullptr, &freeaddrinfo};
     private:
         void init_socket()
         {

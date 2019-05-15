@@ -14,7 +14,7 @@ TEST(Listener, Smoke)
     Logger logger("Main");
     Logger::log_level = Logger::DEBUG;
     Logger::use_console();
-    Listener listener;
+    Listener listener("8080");
     PAUSE;
 }
 
@@ -23,9 +23,10 @@ TEST(Listener, handle_stop)
     Logger logger("Main");
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
-    Listener listener;
+
+    Listener listener("8080");
     logger.info("Starting listener");
-    listener.start_listening(8080);
+    listener.start_listening();
 
     PAUSE;
     logger.info("Stopping listener");

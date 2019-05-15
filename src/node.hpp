@@ -21,7 +21,7 @@
 
 namespace p2p {
 
-class Node: public p2p::P2pConnection
+class Node: public P2pConnection
 {
     public:
         Node(const char* ip, const char* port):
@@ -38,13 +38,7 @@ class Node: public p2p::P2pConnection
         // Ping another node
         bool ping()
         {
-            if (connect(sockfd, addr->ai_addr, addr->ai_addrlen) < 0) {
-                perror("connect");
-                std::stringstream ss;
-                ss << "Could not connect: " << connection_exception().what();
-                logger.debug(ss.str());
-                return false;
-            }
+            _connect();
             logger.debug("Connected to node");
             // TODO error handling
             send(sockfd, "ping!", strlen("ping!"), 0);
@@ -55,7 +49,19 @@ class Node: public p2p::P2pConnection
             return true;
         }
     protected:
+        void _connect()
+        {
+            if (connect(sockfd, addr->ai_addr, addr->ai_addrlen) < 0) {
+                perror("connect");
+                std::stringstream ss;
+                ss << "Could not connect: " << socket_exception().what();
+                logger.debug(ss.str());
+                return;
+            }
+            connected = true;
+        }
         time_t last_contact;
+        bool connected {false};
     private:
         static Logger logger;
 };

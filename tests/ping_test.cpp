@@ -15,12 +15,17 @@ TEST(Listener, ping_test_ipv4)
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
 
-    Listener listener;
-    unsigned short int port = 4000;
-    Node node("::1", std::to_string(port));
+    const char* port = "4000";
+    Listener listener(port);
+    Node node("127.0.0.1", port);
 
-    listener.start_listening(port);
+    listener.start_listening();
     PAUSE; // Give the listener thread time to start
+    if (!node.ping())
+    {
+        FAIL() << "ping or ping response was not successful by node.";
+        return;
+    }
     if (!node.ping())
     {
         FAIL() << "ping or ping response was not successful by node.";
@@ -36,11 +41,11 @@ TEST(Listener, ping_test_ipv6)
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
 
-    Listener listener;
-    unsigned short int port = 4000;
-    Node node("::1", std::to_string(port));
+    const char* port = "4000";
+    Listener listener(port);
+    Node node("::1", port);
 
-    listener.start_listening(port);
+    listener.start_listening();
     PAUSE; // Give the listener thread time to start
     if (!node.ping())
     {
