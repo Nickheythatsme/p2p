@@ -16,8 +16,8 @@ TEST(Listener, ping_test)
     Logger::log_level = Logger::DEBUG;
 
     Listener listener;
-    int port = 22;
-    Node node("127.0.0.1", std::to_string(port).c_str());
+    unsigned short int port = 4000;
+    Node node("127.0.0.1", port);
 
     listener.start_listening(port);
     PAUSE; // Give the listener thread time to start

@@ -24,7 +24,7 @@ namespace p2p {
 class Node: public client_connection
 {
     public:
-        Node(const char* ip, const char* port):
+        Node(const char* ip, unsigned short int port):
             client_connection(ip, port),
             last_contact(0)
         {

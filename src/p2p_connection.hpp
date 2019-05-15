@@ -124,18 +124,20 @@ class SockFd
 class client_connection 
 {
     public:
-        client_connection(const char* address, const char* port)
+        client_connection(const char* address, unsigned short int port)
         {
             struct addrinfo hint, *temp_res = nullptr;
             int ret;
+            char port_buffer[6];
+            sprintf(port_buffer, "%hu", port);
 
             memset(&hint, '\0', sizeof hint);
 
             hint.ai_family = AF_UNSPEC;
             hint.ai_socktype = SOCK_STREAM;
-            hint.ai_flags = AI_PASSIVE;
+            hint.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
             hint.ai_protocol = 0;
-            if ( (ret = getaddrinfo(address, port, &hint, &temp_res)) )
+            if ( (ret = getaddrinfo(address, port_buffer, &hint, &temp_res)) )
             {
                 throw connection_exception(gai_strerror(ret));
             }
@@ -143,7 +145,7 @@ class client_connection
 
             init_socket();
         }
-        client_connection(client_connection&& rhs):
+        client_connection(client_connection&& rhs) noexcept:
             sockfd(rhs.sockfd),
             addr(std::move(rhs.addr))
         {
@@ -197,7 +199,7 @@ class ServAddr
         void set_sin_addr(const char *address, unsigned short port)
         {
             if (!addr) return;
-            addr->sin_port = port;
+            addr->sin_port = htons(port);
             if (inet_pton(AF_INET, address, &addr->sin_addr) == 0) {
                 throw connection_exception("Invalid ip address");
             }
