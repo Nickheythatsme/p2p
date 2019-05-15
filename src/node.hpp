@@ -45,6 +45,7 @@ class Node
             send(fd.get(), "ping!", strlen("ping!"), 0);
             char buffer[1024];
             ssize_t valread = read(fd.get(), buffer, 1024);
+            buffer[valread] = '\0';
             logger.info(std::string("Response buffer: ") + std::string(buffer));
             return true;
         }
