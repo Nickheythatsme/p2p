@@ -49,7 +49,12 @@ class Node: public client_connection
             // TODO error handling
             send(sockfd, "ping!", strlen("ping!"), 0);
             char buffer[1024];
+<<<<<<< HEAD
             ssize_t valread = read(sockfd, buffer, 1024);
+=======
+            ssize_t valread = read(fd.get(), buffer, 1024);
+            buffer[valread] = '\0';
+>>>>>>> 68aff346fa9638953b608e49558c5e5cae22359a
             logger.info(std::string("Response buffer: ") + std::string(buffer));
             return true;
         }
