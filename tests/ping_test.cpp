@@ -61,8 +61,8 @@ TEST(Listener, SendFile)
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
 
-    Listener listener(PORT);
-    Node node("::1", PORT);
+    Listener listener("8081");
+    Node node("::1", "8081");
 
     listener.start_listening();
     PAUSE(100); // Give the listener thread time to start
