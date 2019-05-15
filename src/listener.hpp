@@ -5,26 +5,62 @@
 #ifndef LISTENER_HPP
 #define LISTENER_HPP
 
+#include "util/config.hpp"
 #include "util/logger.hpp"
 #include "p2p_connection.hpp"
 #include <unistd.h>
-#include <future>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdio.h>
 #include <cstdlib>
 #include <cstring>
-#include <csignal>
 
+
+// how long the connection queue can be before we send conn refused
+#define BACKLOG 10 
 
 namespace p2p {
 
-class Listener
+class Listener: public P2pConnection
 {
 public:
-    void start_listening(unsigned short int port)
+    Listener() = delete;
+    Listener(const char* cport, bool force_ipv6) noexcept:
+        port(cport),
+        P2pConnection(nullptr, cport, force_ipv6)
     {
-        listener_thread = std::make_unique<std::thread>(&Listener::_start_listening, this, port);
+    }
+    Listener(const char* cport) noexcept:
+        port(cport),
+        P2pConnection(nullptr, cport, false)
+    {
+    }
+    void start_listening()
+    {
+        int opt = 1;
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
+                       &opt, sizeof(opt)))
+        {
+            throw connection_exception();
+        }
+
+        logger.debug("Binding Socket to port");
+        if (bind(sockfd, addr->ai_addr, addr->ai_addrlen) < 0)
+        {
+            throw connection_exception("Error binding");
+        }
+        if (listen(sockfd, BACKLOG) < 0)
+        {
+            throw connection_exception("Error listening");
+        }
+        // get host name and port message
+        char chostname[256];
+        gethostname(chostname, 256);
+        std::stringstream ss;
+        ss << "Listening on port: " << port << " Hostname: " << chostname;
+        logger.info(ss.str());
+        listener_thread = std::make_unique<std::thread>(&Listener::_accept_connections, this);
+    }
+    bool using_ipv6() const
+    {
+        return addr->ai_family == AF_INET6;
     }
     ~Listener()
     {
@@ -44,67 +80,52 @@ public:
         }
     }
 protected:
-    void _start_listening(unsigned short int port)
+    void _accept_connections()
     {
-        SockFd serverfd;
-        ServAddr address;
-        int opt = 1;
-        address.get()->sin_addr.s_addr = INADDR_ANY;
-        address.get()->sin_port = htons(port);
-
-        if (setsockopt(serverfd, SOL_SOCKET, SO_REUSEADDR,
-                       &opt, sizeof(opt)))
+        // TODO Register interrupt handler
+        logger.debug("Waiting for new connections");
+        for (;;)
         {
-            perror("setsockopt");
-            throw connection_exception("Error in setsockopt");
+            int new_socket = accept(sockfd, addr->ai_addr, &addr->ai_addrlen);
+            if (new_socket < 0)
+            {
+                throw connection_exception("Error when accepting new connection");
+            }
+            logger.debug("Accepted new connection");
+            std::thread(&Listener::read_respond, this, new_socket).detach(); // TODO create threadpool
         }
-
-        logger.debug("Binding Socket to port");
-        if (bind(serverfd, (struct sockaddr *)address.get(), sizeof(sockaddr_in)) < 0)
-        {
-            perror("bind()");
-            throw connection_exception("Error binding");
-        }
-        if (listen(serverfd, 3) < 0)
-        {
-            perror("listen()");
-            throw connection_exception("Error listening");
-        }
-        logger.info(std::string("Listening for new connections on port: ") + std::to_string(port));
-        _accept_connections(std::move(serverfd), std::move(address));
     }
-    void _accept_connections(SockFd&& fd, ServAddr&& addr)
-    {
-        // Register interrupt handler
-        logger.debug("waiting for new connections");
-        auto sockaddr_in_size = sizeof(struct sockaddr_in);
-        logger.debug("Accepting new connections");
-        SockFd new_socket(accept(fd, (struct sockaddr *)addr.get(), (socklen_t*)&sockaddr_in_size));
-        if (new_socket < 0)
-        {
-            perror("accept");
-            throw connection_exception("Error when accepting new connection");
-        }
-        logger.debug("Accepted new connection");
-        std::thread(&Listener::read_respond, this, std::move(new_socket)).detach(); // TODO create threadpool
-    }
-    bool read_respond(SockFd&& fd)
+    // TODO do routing here. Is it a ping? A file? A routing table?
+    bool read_respond(int new_socket)
     {
         // Reading
-        char buffer[1024];
-        read(fd.get(), buffer, 1024);
-        logger.debug(std::string("Request: ") + buffer);
-        send(fd.get(), "pong", strlen("pong"), 0);
+        std::stringstream ss;
+        int bytes_read = 0;
+        do {
+            char buffer[1024];
+            if ( (bytes_read = recv(new_socket, buffer, 1024, MSG_DONTWAIT)) < 0) {
+                if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                    logger.warn(std::string("Encountered error receiving: ") + connection_exception().what());
+                    return false;
+                }
+                bytes_read = 0;
+            }
+            buffer[bytes_read] = '\0';
+            ss << buffer;
+        } while (bytes_read > 0);
+        logger.debug(std::string("Request: ") + ss.str());
+        send(new_socket, "pong", strlen("pong"), MSG_NOSIGNAL);
         logger.debug("Response sent");
+        close(new_socket);
         return true;
     }
 private:
     static Logger logger;
     std::unique_ptr<std::thread> listener_thread {nullptr};
+    const std::string port;
 };
 
 Logger Listener::logger("Listener");
-
 
 } // namespace p2p
 #endif //LISTENER_HPP
