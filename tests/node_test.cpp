@@ -93,7 +93,7 @@ TEST(Node, SocketLeakage)
     {
         std::vector<Node> nodes;
 
-        for (int i=0; i<400; ++i)
+        for (int i=0; i<100; ++i)
         {
             nodes.emplace_back("255.255.255.255", 8080);
         }
@@ -111,22 +111,18 @@ TEST(Node, SocketLeakage)
 
 TEST(Node, SocketAllocError)
 {
-    SUCCEED() << "SKIPPING TEST FOR NOW";
-    PAUSE(100);
-    return;
-
     Logger logger("MAIN");
+    Logger::use_console();
     std::vector<Node> nodes;
-    long long count = 0;
 
     try {
-        for (;;)
+        for (unsigned i = 0; i < 0xFFFF; ++i)
         {
             nodes.emplace_back(Node("255.255.255.255", 8080));
-            count++;
-            if (count % 1000 == 0)
+            i++;
+            if (i % 1000 == 0)
             {
-                logger.info(std::to_string(count) + std::string(" sockets created"));
+                logger.info(std::to_string(i) + std::string(" sockets created"));
             }
         }
     } catch(const socket_exception& e)
