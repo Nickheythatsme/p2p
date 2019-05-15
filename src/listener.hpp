@@ -20,17 +20,14 @@
 #define BACKLOG 10 
 
 #if defined(__apple__)
-#ifndef SO_NOSIGPIPE
-#define SO_NOSIGPIPE MSG_NOSIGPIPE
+#ifndef MSG_NOSIGNAL 
+#define MSG_NOSIGNAL MSG_NOSIGPIPE
 #endif
-#ifndef SO_REUSEADDR
-#define SO_REUSEADDR MSG_REUSEADDR
-#endif
-#ifndef SO_DONTWAIT
-#define SO_DONTWAIT MSG_DONTWAIT
-#endif
-
+// nothing
 #elif defined(__linux__)
+#ifndef MSG_REUSEADDR
+#define MSG_REUSEADDR SO_REUSEADDR
+#endif
 // nothing
 #else
 // TODO add windows support for broken pipe interrupt 
@@ -55,7 +52,7 @@ public:
     void start_listening()
     {
         int opt = 1;
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
+        if (setsockopt(sockfd, SOL_SOCKET, MSG_REUSEADDR,
                        &opt, sizeof(opt)))
         {
             throw connection_exception();
@@ -125,7 +122,7 @@ protected:
         int bytes_read = 0;
         do {
             char buffer[1024];
-            if ( (bytes_read = recv(new_socket, buffer, 1024, SO_DONTWAIT)) < 0) {
+            if ( (bytes_read = recv(new_socket, buffer, 1024, MSG_DONTWAIT)) < 0) {
                 if (errno != EAGAIN && errno != EWOULDBLOCK) {
                     perror("recv");
                     return false;
@@ -136,7 +133,7 @@ protected:
             ss << buffer;
         } while (bytes_read > 0);
         logger.debug(std::string("Request: ") + ss.str());
-        send(new_socket, "pong", strlen("pong"), SO_NOSIGPIPE);
+        send(new_socket, "pong", strlen("pong"), MSG_NOSIGNAL);
         logger.debug("Response sent");
         close(new_socket);
         return true;

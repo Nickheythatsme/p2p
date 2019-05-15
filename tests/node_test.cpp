@@ -131,7 +131,7 @@ TEST(Node, SocketAllocError)
                 logger.info(std::to_string(i) + std::string(" sockets created"));
             }
         }
-    } catch(const socket_exception& e)
+    } catch(const connection_exception& e)
     {
         logger.info(std::string("Caught socket exception") + e.what());
         SUCCEED() << "Successfully threw exception";

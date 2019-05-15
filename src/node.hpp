@@ -19,12 +19,16 @@
 #ifndef P2P_NODE_H
 #define P2P_NODE_H
 
-#if defined __apple__
-#define NOSIGPIPE SO_NOSIGPIPE
-#elif defined __linux__
-#define NOSIGPIPE MSG_NOSIGNAL
+#if defined(__apple__)
+#ifndef MSG_NOSIGNAL 
+#define MSG_NOSIGNAL MSG_NOSIGPIPE
 #endif
-
+// nothing
+#elif defined(__linux__)
+// nothing
+#else
+// TODO add windows support for broken pipe interrupt 
+#endif
 
 namespace p2p {
 
@@ -49,7 +53,7 @@ class Node: public P2pConnection
                 _connect();
             logger.debug("Connected to node");
             // TODO error handling
-            if ( send(sockfd, "ping!", strlen("ping!"), NOSIGPIPE) < 0) {
+            if ( send(sockfd, "ping!", strlen("ping!"), MSG_NOSIGNAL) < 0) {
                 perror("send");
                 logger.info("send to another node failed");
                 return false;
@@ -77,7 +81,7 @@ class Node: public P2pConnection
             fin.read(contents, flen);
 
             if (!connected) _connect();
-            if (send(sockfd, contents, flen, NOSIGPIPE) < 0) {
+            if (send(sockfd, contents, flen, MSG_NOSIGNAL) < 0) {
                 perror("send");
                 logger.info("send to another node failed");
                 return false;
@@ -94,7 +98,7 @@ class Node: public P2pConnection
             if (connect(sockfd, addr->ai_addr, addr->ai_addrlen) < 0) {
                 perror("connect");
                 std::stringstream ss;
-                ss << "Could not connect: " << socket_exception().what();
+                ss << "Could not connect: " << connection_exception().what();
                 logger.debug(ss.str());
                 return;
             }

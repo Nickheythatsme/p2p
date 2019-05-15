@@ -60,33 +60,11 @@ class connection_exception: public std::exception
             {
                 return msg;
             }
-            return sys_errlist[errno];
+            return strerror(errno_at_init);
         }
     private:
         const char *msg;
         int errno_at_init;
-};
-
-class socket_exception: public connection_exception
-{
-    public:
-        socket_exception() noexcept:
-            error_at_init(errno)
-        { }
-        const char* what() const noexcept override {
-            switch (error_at_init) {
-                case EACCES: return "Error creating socket: permission denied";
-                case ENFILE: return "Error creating socket: The system file table is full.";
-                case ENOBUFS:return "Error creating socket: Insufficient buffer space";
-                case ENOMEM: return "Error creating socket: Insufficient memory to complete operation";
-                case ECONNREFUSED: return "Error connecting: Connection refused by server";
-                case ENETUNREACH: return "Error connecting: Network unreachable";
-                default:     return "Unknown socket error";
-
-            }
-        }
-    private:
-        int error_at_init;
 };
 
 class P2pConnection
@@ -130,8 +108,7 @@ class P2pConnection
             sockfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
             if (sockfd < 0)
             {
-                perror("socket");
-                throw socket_exception();
+                throw connection_exception();
             }
         }
 };
