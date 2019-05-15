@@ -88,12 +88,25 @@ protected:
             std::thread(&Listener::read_respond, this, new_socket).detach(); // TODO create threadpool
         }
     }
+    // TODO do routing here. Is it a ping? A file? A routing table?
     bool read_respond(int new_socket)
     {
         // Reading
-        char buffer[1024];
-        read(new_socket, buffer, 1024);
-        logger.debug(std::string("Request: ") + buffer);
+        std::stringstream ss;
+        int bytes_read = 0;
+        do {
+            char buffer[1024];
+            if ( (bytes_read = recv(new_socket, buffer, 1024, MSG_DONTWAIT)) < 0) {
+                if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                    perror("recv");
+                    return false;
+                }
+                bytes_read = 0;
+            }
+            buffer[bytes_read] = '\0';
+            ss << buffer;
+        } while (bytes_read > 0);
+        logger.debug(std::string("Request: ") + ss.str());
         send(new_socket, "pong", strlen("pong"), 0);
         logger.debug("Response sent");
         close(new_socket);

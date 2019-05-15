@@ -38,12 +38,45 @@ class Node: public P2pConnection
         // Ping another node
         bool ping()
         {
-            _connect();
+            if (!connected)
+                _connect();
             logger.debug("Connected to node");
             // TODO error handling
-            send(sockfd, "ping!", strlen("ping!"), 0);
+            if ( send(sockfd, "ping!", strlen("ping!"), 0) < 0) {
+                perror("send");
+                logger.info("send to another node failed");
+                return false;
+            }
             char buffer[1024];
-            ssize_t valread = read(sockfd, buffer, 1024);
+            ssize_t valread = recv(sockfd, buffer, 1024, 0);
+            buffer[valread] = '\0';
+            logger.info(std::string("Response buffer: ") + std::string(buffer));
+            return true;
+        }
+        bool send_file(const char* filename)
+        {
+            std::ifstream fin(filename, std::ios::binary | std::ios::ate);
+            if (!fin) {
+                logger.info(std::string("invalid filename: ") + filename);
+                return false;
+            }
+            auto flen = fin.tellg();
+            char* contents = (char*) malloc(sizeof(char) * flen);
+            if (contents == nullptr) {
+                logger.info("Not enough memory");
+                return false;
+            }
+            fin.seekg(std::ios_base::end);
+            fin.read(contents, flen);
+
+            if (!connected) _connect();
+            if (send(sockfd, contents, flen, 0) < 0) {
+                perror("send");
+                logger.info("send to another node failed");
+                return false;
+            }
+            char buffer[1024];
+            ssize_t valread = recv(sockfd, buffer, 1024, 0);
             buffer[valread] = '\0';
             logger.info(std::string("Response buffer: ") + std::string(buffer));
             return true;
