@@ -15,6 +15,8 @@
 #include <sys/socket.h>
 #include <cerrno>
 #include <arpa/inet.h> // For inet_pton
+#include <netdb.h>
+
 
 #ifndef P2P_PDP_CONNECTION_H
 #define P2P_PDP_CONNECTION_H
@@ -118,6 +120,55 @@ class SockFd
             return sockfd;
         }
 };
+
+class client_connection 
+{
+    public:
+        client_connection(const char* address, const char* port)
+        {
+            struct addrinfo hint, *temp_res = nullptr;
+            int ret;
+
+            memset(&hint, '\0', sizeof hint);
+
+            hint.ai_family = PF_UNSPEC;
+            hint.ai_flags = 0;
+            hint.ai_protocol = 0;
+            hint.ai_socktype = SOCK_STREAM;
+            if ( (ret = getaddrinfo(address, port, &hint, &temp_res)) )
+            {
+                throw connection_exception(gai_strerror(ret));
+            }
+            addr.reset(temp_res);
+
+            init_socket();
+        }
+        client_connection(client_connection&& rhs):
+            sockfd(rhs.sockfd),
+            addr(std::move(rhs.addr))
+        {
+            rhs.addr.reset();
+            rhs.sockfd = 0;
+        }
+        virtual ~client_connection()
+        {
+            close(sockfd);
+        }
+    protected:
+        int sockfd;
+        std::unique_ptr<struct addrinfo> addr;
+    private:
+        void init_socket()
+        {
+            sockfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+            if (sockfd < 0)
+            {
+                perror("socket");
+                throw socket_exception();
+            }
+        }
+};
+
 
 class ServAddr
 {

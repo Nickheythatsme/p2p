@@ -16,7 +16,7 @@ TEST(Listener, ping_test)
 
     Listener listener;
     int port = 8080;
-    Node node("127.0.0.1", port);
+    Node node("127.0.0.1", "8080");
 
     listener.start_listening(port);
     PAUSE; // Give the listener thread time to start
