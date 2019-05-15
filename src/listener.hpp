@@ -10,6 +10,7 @@
 #include "p2p_connection.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <cstdlib>
@@ -20,15 +21,15 @@
 #define BACKLOG 10 
 
 #if defined(__apple__)
-#ifndef MSG_NOSIGNAL 
-#define MSG_NOSIGNAL MSG_NOSIGPIPE
-#endif
-// nothing
-#elif defined(__linux__)
-#ifndef MSG_REUSEADDR
+#undef  MSG_NOSIGNAL 
+#define MSG_NOSIGNAL SO_NOSIGPIPE
+#undef MSG_REUSEADDR
 #define MSG_REUSEADDR SO_REUSEADDR
-#endif
-// nothing
+
+#elif defined(__linux__)
+#undef MSG_REUSEADDR
+#define MSG_REUSEADDR SO_REUSEADDR
+
 #else
 // TODO add windows support for broken pipe interrupt 
 #endif

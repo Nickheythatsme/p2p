@@ -20,12 +20,13 @@
 #define P2P_NODE_H
 
 #if defined(__apple__)
-#ifndef MSG_NOSIGNAL 
-#define MSG_NOSIGNAL MSG_NOSIGPIPE
-#endif
-// nothing
+#undef  MSG_NOSIGNAL 
+#define MSG_NOSIGNAL SO_NOSIGPIPE
+
 #elif defined(__linux__)
-// nothing
+#undef MSG_REUSEADDR
+#define MSG_REUSEADDR SO_REUSEADDR
+
 #else
 // TODO add windows support for broken pipe interrupt 
 #endif
