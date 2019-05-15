@@ -2,34 +2,16 @@
 // Created by Nick Grout on 2019-04-06.
 //
 
-#include <vector>
+#ifndef P2P_NODE_H
+#define P2P_NODE_H
+
+
 #include <memory>
 #include <exception>
 #include <string>
 #include "util/logger.hpp"
 #include "util/config.hpp"
 #include "p2p_connection.hpp"
-
-// For socket info
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <cerrno>
-#include <arpa/inet.h> // For inet_pton
-
-#ifndef P2P_NODE_H
-#define P2P_NODE_H
-
-#if defined(__apple__)
-#undef  MSG_NOSIGNAL 
-#define MSG_NOSIGNAL SO_NOSIGPIPE
-
-#elif defined(__linux__)
-#undef MSG_REUSEADDR
-#define MSG_REUSEADDR SO_REUSEADDR
-
-#else
-// TODO add windows support for broken pipe interrupt 
-#endif
 
 namespace p2p {
 

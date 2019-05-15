@@ -4,40 +4,14 @@
 // Created by Nick Grout on 2019-04-06.
 //
 
-#include <vector>
-#include <memory>
-#include <exception>
-#include <cstring>
-#include "./util/config.hpp"
-
-// For socket info
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <cerrno>
-#include <arpa/inet.h> // For inet_pton
-#include <netdb.h>
-
-
 #ifndef P2P_PDP_CONNECTION_H
 #define P2P_PDP_CONNECTION_H
 
-#if defined(__linux__)
-// nothing
-
-#elif defined(__apple__)
-
-#ifndef AF_UNSPEC
-#define AF_UNSPEC PF_UNSPEC
-#endif
-
-#ifndef AF_INET6
-#define AF_INET6 PF_INET6
-#endif
-
-#else
-// TODO add windows support for Protocol 
-#endif
+#include <memory>
+#include <exception>
+#include <cstring>
+#include "util/config.hpp"
+#include <unistd.h>
 
 namespace p2p {
 
@@ -74,6 +48,7 @@ class P2pConnection
 
             hint.ai_family = (force_ipv6) ? AF_INET6 : AF_UNSPEC;
             hint.ai_socktype = SOCK_STREAM;
+            // See linux man page 3 getaddrinfo for flags
             hint.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
             hint.ai_protocol = 0;
             if ( (ret = getaddrinfo(address, port, &hint, &temp_res)) )

@@ -5,34 +5,16 @@
 #ifndef LISTENER_HPP
 #define LISTENER_HPP
 
-#include "util/logger.hpp"
 #include "util/config.hpp"
+#include "util/logger.hpp"
 #include "p2p_connection.hpp"
 #include <unistd.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <stdio.h>
 #include <cstdlib>
 #include <cstring>
-#include <csignal>
+
 
 // how long the connection queue can be before we send conn refused
 #define BACKLOG 10 
-
-#if defined(__apple__)
-#undef  MSG_NOSIGNAL 
-#define MSG_NOSIGNAL SO_NOSIGPIPE
-#undef MSG_REUSEADDR
-#define MSG_REUSEADDR SO_REUSEADDR
-
-#elif defined(__linux__)
-#undef MSG_REUSEADDR
-#define MSG_REUSEADDR SO_REUSEADDR
-
-#else
-// TODO add windows support for broken pipe interrupt 
-#endif
 
 namespace p2p {
 
@@ -53,7 +35,7 @@ public:
     void start_listening()
     {
         int opt = 1;
-        if (setsockopt(sockfd, SOL_SOCKET, MSG_REUSEADDR,
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
                        &opt, sizeof(opt)))
         {
             throw connection_exception();
