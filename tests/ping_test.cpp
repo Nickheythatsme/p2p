@@ -41,13 +41,14 @@ TEST(Listener, ping_test_ipv6)
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
 
-    Listener listener(PORT);
-    Node node("::1", PORT);
+    Listener listener(PORT, true);
+    Node node("0:0:0:0:0:0:0:1", PORT);
 
     listener.start_listening();
     PAUSE(100); // Give the listener thread time to start
     if (!node.ping())
     {
+        PAUSE(100); // Give the listener thread time to start
         FAIL() << "ping or ping response was not successful by node.";
         return;
     }
@@ -62,7 +63,7 @@ TEST(Listener, SendFile)
     Logger::log_level = Logger::DEBUG;
 
     Listener listener("8081");
-    Node node("::1", "8081");
+    Node node("127.0.0.1", "8081");
 
     listener.start_listening();
     PAUSE(100); // Give the listener thread time to start

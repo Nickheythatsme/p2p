@@ -9,7 +9,6 @@
 #include "util/config.hpp"
 #include "p2p_connection.hpp"
 #include <unistd.h>
-#include <future>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -17,11 +16,16 @@
 #include <cstring>
 #include <csignal>
 
+// how long the connection queue can be before we send conn refused
+#define BACKLOG 10 
 
 #if defined __apple__
 #define NOSIGPIPE SO_NOSIGPIPE
 #elif defined __linux__
 #define NOSIGPIPE MSG_NOSIGNAL
+#else
+// TODO add windows support for broken pipe interrupt 
+#define NOSIGPIPE 0
 #endif
 
 namespace p2p {
@@ -30,16 +34,20 @@ class Listener: public P2pConnection
 {
 public:
     Listener() = delete;
+    Listener(const char* cport, bool force_ipv6) noexcept:
+        port(cport),
+        P2pConnection(nullptr, cport, force_ipv6)
+    {
+    }
     Listener(const char* cport) noexcept:
         port(cport),
-        P2pConnection(nullptr, cport)
+        P2pConnection(nullptr, cport, false)
     {
-
     }
     void start_listening()
     {
         int opt = 1;
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT|SO_REUSEADDR,
                        &opt, sizeof(opt)))
         {
             perror("setsockopt");
@@ -52,14 +60,22 @@ public:
             perror("bind");
             throw connection_exception("Error binding");
         }
-        if (listen(sockfd, 3) < 0)
+        if (listen(sockfd, BACKLOG) < 0)
         {
             perror("listen");
             throw connection_exception("Error listening");
         }
-        logger.info(std::string("Listening for new connections on port: ") + port);
-        // _accept_connections();
+        // get host name and port message
+        char chostname[256];
+        gethostname(chostname, 256);
+        std::stringstream ss;
+        ss << "Listening on port: " << port << " Hostname: " << chostname;
+        logger.info(ss.str());
         listener_thread = std::make_unique<std::thread>(&Listener::_accept_connections, this);
+    }
+    bool using_ipv6() const
+    {
+        return addr->ai_family == AF_INET6;
     }
     ~Listener()
     {
@@ -122,7 +138,7 @@ protected:
 private:
     static Logger logger;
     std::unique_ptr<std::thread> listener_thread {nullptr};
-    std::string port;
+    const std::string port;
 };
 
 Logger Listener::logger("Listener");

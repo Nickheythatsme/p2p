@@ -68,13 +68,13 @@ class socket_exception: public connection_exception
 class P2pConnection
 {
     public:
-        explicit P2pConnection(const char* address, const char* port):
+        explicit P2pConnection(const char* address, const char* port, bool force_ipv6):
             sockfd(-1)
         {
             struct addrinfo hint{}, *temp_res = nullptr;
             int ret;
 
-            hint.ai_family = AF_UNSPEC;
+            hint.ai_family = (force_ipv6) ? AF_INET6 : AF_UNSPEC;
             hint.ai_socktype = SOCK_STREAM;
             hint.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
             hint.ai_protocol = 0;

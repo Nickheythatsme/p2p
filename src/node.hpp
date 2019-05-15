@@ -32,7 +32,7 @@ class Node: public P2pConnection
 {
     public:
         Node(const char* ip, const char* port):
-            P2pConnection(ip, port),
+            P2pConnection(ip, port, false),
             last_contact(0)
         {
         }
