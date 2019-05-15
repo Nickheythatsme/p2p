@@ -42,12 +42,12 @@ public:
         logger.debug("Binding Socket to port");
         if (bind(sockfd, addr->ai_addr, addr->ai_addrlen) < 0)
         {
-            perror("bind()");
+            perror("bind");
             throw connection_exception("Error binding");
         }
         if (listen(sockfd, 3) < 0)
         {
-            perror("listen()");
+            perror("listen");
             throw connection_exception("Error listening");
         }
         logger.info(std::string("Listening for new connections on port: ") + port);

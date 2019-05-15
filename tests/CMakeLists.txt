@@ -28,7 +28,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 
 
 ### Add/Make tests
-add_executable(example_test example_test.cpp)
+add_executable(example_test example_test.cpp ../src/util/config.hpp)
 target_link_libraries(example_test gtest_main)
 add_test(NAME example_test COMMAND example_test)
 

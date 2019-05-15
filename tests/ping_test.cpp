@@ -38,7 +38,6 @@ TEST(Listener, ping_test_ipv4)
 
 TEST(Listener, ping_test_ipv6)
 {
-    signal(SIGPIPE, SIG_IGN);
     Logger logger("Main");
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;

@@ -7,6 +7,7 @@
 #include <exception>
 #include <string>
 #include "util/logger.hpp"
+#include "util/config.hpp"
 #include "p2p_connection.hpp"
 
 // For socket info
@@ -17,6 +18,12 @@
 
 #ifndef P2P_NODE_H
 #define P2P_NODE_H
+
+#if defined __apple__
+#define NOSIGPIPE SO_NOSIGPIPE
+#elif defined __linux__
+#define NOSIGPIPE MSG_NOSIGPIPE
+#endif
 
 
 namespace p2p {
@@ -42,7 +49,7 @@ class Node: public P2pConnection
                 _connect();
             logger.debug("Connected to node");
             // TODO error handling
-            if ( send(sockfd, "ping!", strlen("ping!"), 0) < 0) {
+            if ( send(sockfd, "ping!", strlen("ping!"), NOSIGPIPE) < 0) {
                 perror("send");
                 logger.info("send to another node failed");
                 return false;
