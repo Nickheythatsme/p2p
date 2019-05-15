@@ -8,6 +8,7 @@
 
 using namespace p2p;
 #define PAUSE(T) std::this_thread::sleep_for(std::chrono::milliseconds(T)) // give logs time to output
+#define PORT "8000"
 
 TEST(Listener, ping_test_ipv4)
 {
@@ -16,9 +17,8 @@ TEST(Listener, ping_test_ipv4)
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
 
-    const char* port = "4000";
-    Listener listener(port);
-    Node node("127.0.0.1", port);
+    Listener listener(PORT);
+    Node node("127.0.0.1", PORT);
 
     listener.start_listening();
     PAUSE(100); // Give the listener thread time to start
@@ -43,9 +43,8 @@ TEST(Listener, ping_test_ipv6)
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
 
-    const char* port = "4000";
-    Listener listener(port);
-    Node node("::1", port);
+    Listener listener(PORT);
+    Node node("::1", PORT);
 
     listener.start_listening();
     PAUSE(100); // Give the listener thread time to start
@@ -65,9 +64,8 @@ TEST(Listener, SendFile)
     Logger::use_console();
     Logger::log_level = Logger::DEBUG;
 
-    const char* port = "4000";
-    Listener listener(port);
-    Node node("::1", port);
+    Listener listener(PORT);
+    Node node("::1", PORT);
 
     listener.start_listening();
     PAUSE(100); // Give the listener thread time to start
