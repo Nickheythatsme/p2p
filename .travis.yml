@@ -15,11 +15,6 @@ matrix:
             - cmake
     - env: COMPILER=g++-6 BUILD=Debug STANDARD=17
       os: osx
-      addons:
-        homebrew:
-          update: true
-          packages:
-            - cmake
 
 
 script: cmake . && make && ctest -VV

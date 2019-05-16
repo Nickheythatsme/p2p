@@ -35,7 +35,6 @@ class Node: public P2pConnection
             if (!connected)
                 _connect();
             logger.debug("Connected to node");
-            // TODO error handling
             if ( send(sockfd, "ping!", strlen("ping!"), MSG_NOSIGNAL) < 0) {
                 logger.info(std::string("send to another node failed: ") + connection_exception().what());
                 return false;
