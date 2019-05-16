@@ -104,7 +104,7 @@ TEST(Logger, OutputFormat)
     logger.info("info");
     logger.warn("warn");
     logger.crit("crit");
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     // Check to make sure output was correct
     std::ifstream fin("output-test.out");
