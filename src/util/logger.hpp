@@ -1,4 +1,6 @@
-// 
+#include <memory>
+
+//
 // Nicholas Grout 4/30
 //
 #include <string>
@@ -23,44 +25,7 @@ namespace p2p
 
 #define OUTPUT_FREQ 100
 
-using formatter_func = std::string (*)(const std::string &tag, const std::string &message);
-std::string
-default_formatter(const std::string &tag, const std::string &message)
-{
-    // TODO add time formatting
-    std::stringstream ss;
-    const char *time_fmt = "%H:%M:%S";
-    time_t current_time_t = time(nullptr);
-    auto current_time_tm = gmtime(&current_time_t);
-    char formatted_time[9];
-    strftime(formatted_time, 9, time_fmt, current_time_tm);
-    ss << "[" << formatted_time << "] [" << tag << "] " << message;
-    return ss.str();
-}
-
-class NewLog
-{
-public:
-    NewLog(std::string message, std::shared_ptr<std::string> tag, formatter_func formatter)
-        :
-        message(std::move(message)),
-        tag(std::move(tag)),
-        formatter(formatter)
-    {
-    }
-    virtual ~NewLog() = default;
-    friend std::ostream &
-    operator<<(std::ostream &out, const NewLog &log)
-    {
-        out << log.formatter(*log.tag, log.message);
-        return out;
-    }
-protected:
-private:
-    std::shared_ptr<std::string> tag;
-    std::string message;
-    formatter_func formatter;
-};
+using formatter_func = std::string (*)(const std::string &tag, short log_level, const std::string &message);
 
 class LoggerPrinter
 {
@@ -76,10 +41,10 @@ public:
     {
         stop();
     }
-    void add_log(NewLog &&message)
+    void add_log(std::string&& message)
     {
         std::lock_guard<std::mutex> guard(new_logs_lock);
-        new_logs.emplace_back(message);
+        new_logs.emplace_back(std::move(message));
     }
     bool remove_ostream(const std::string &key)
     {
@@ -88,15 +53,13 @@ public:
     }
     bool add_file(const char *filename, bool append)
     {
-        using o_uptr = std::unique_ptr<std::ostream>;
-        o_uptr fout(new std::ofstream(filename, (append) ? (std::ios_base::app) : (std::ios_base::out)));
+        std::unique_ptr<std::ostream> fout(new std::ofstream(filename, (append) ? (std::ios_base::app) : (std::ios_base::out)));
         return add_ostream(filename, std::move(fout));
     }
     bool add_console()
     {
-        using o_uptr = std::unique_ptr<std::ostream>;
         auto sb = std::cout.rdbuf(nullptr);
-        return add_ostream("COUT CONSOLE", o_uptr(new std::ostream(sb)));
+        return add_ostream("COUT CONSOLE", std::make_unique<std::ostream>(sb));
     }
 protected:
     bool add_ostream(std::string &&key, std::unique_ptr<std::ostream> &&out)
@@ -129,7 +92,7 @@ protected:
             // Wait for a period of time
             std::this_thread::sleep_for(std::chrono::milliseconds(OUTPUT_FREQ));
             std::unique_lock<std::mutex> guard(new_logs_lock);
-            std::vector<NewLog> to_output(std::move(new_logs));
+            auto to_output(std::move(new_logs));
             guard.unlock();
 
             std::lock_guard<std::mutex> output_guard(output_streams_lock);
@@ -143,7 +106,7 @@ protected:
     }
 private:
     std::mutex new_logs_lock;
-    std::vector<NewLog> new_logs{};
+    std::vector<std::string> new_logs{};
     std::atomic<bool> running{true};
     std::thread logging_thread;
     std::mutex output_streams_lock;
@@ -155,32 +118,32 @@ class Logger
 public:
     Logger() = default;
     ~Logger() = default;
-    explicit Logger(const std::string &tag):
-        tag(std::make_shared<std::string>(tag))
+    explicit Logger(std::string tag):
+        tag(std::move(tag))
     {
     }
-    void debug(std::string message)
+    template <typename... Ts>
+    void debug(Ts const&...messages)
     {
         if (log_level <= Logger::DEBUG)
-            output_message(std::move(message));
+            output_message(Logger::DEBUG, messages...);
     }
-    void info(std::string message)
+    template <typename... Ts>
+    void info(Ts const&... messages)
     {
         if (log_level <= Logger::INFO)
-            output_message(std::move(message));
+            output_message(Logger::INFO, messages...);
     }
-    void warn(std::string message)
+    template <typename... Ts>
+    void warn(Ts const&... messages)
     {
         if (log_level <= Logger::WARN)
-            output_message(std::move(message));
+            output_message(Logger::WARN, messages...);
     }
-    void crit(std::string message)
+    template <typename... Ts>
+    void crit(Ts const&... messages)
     {
-        output_message(std::move(message));
-    }
-    static void set_formatter(formatter_func func)
-    {
-        formatter = func;
+        output_message(Logger::CRIT, messages...);
     }
     static bool add_file(const char *filename, bool append = true)
     {
@@ -195,32 +158,62 @@ public:
     static const short WARN;
     static const short CRIT;
     static short log_level;
+    static const char* level_names[];
 protected:
-    void output_message(std::string &&message)
+    template<typename ...Ts>
+    void output_message(short level, Ts const &... rest)
     {
-        printer.add_log(
-            NewLog(std::move(message), tag, formatter)
-        );
+        std::stringstream ss;
+        add_log_header(ss, level);
+        _accumulate_args(ss, rest...);
+        printer.add_log(ss.str());
+    }
+    // Create standard message
+    std::ostream& add_log_header(std::stringstream& ss, short level)
+    {
+        auto time_fmt = "%H:%M:%S";
+        time_t current_time_t = time(nullptr);
+        auto current_time_tm = gmtime(&current_time_t);
+        char formatted_time[9];
+        strftime(formatted_time, 9, time_fmt, current_time_tm);
+
+        ss << "[" << formatted_time << "][" << tag;
+        for (int i=tag.length(); i<8; ++i)
+        {
+            ss << " ";
+        }
+        ss << "][" << Logger::level_names[level] << "] ";
+        return ss;
+    }
+    template<typename Arg, typename ...Ts>
+    void _accumulate_args(std::stringstream& ss, const Arg& arg, Ts const&...rest)
+    {
+        ss << arg;
+        _accumulate_args(ss, rest...);
+    }
+    template<typename Arg>
+    void _accumulate_args(std::stringstream& ss, const Arg& arg)
+    {
+        ss << arg;
     }
 private:
-    static formatter_func formatter;
-    std::shared_ptr<std::string> tag{std::make_shared<std::string>("LOG")};
+    std::string tag{"LOG"};
     static LoggerPrinter printer;
 };
 
 const short Logger::DEBUG{0x0};
-
 const short Logger::INFO{0x1};
-
 const short Logger::WARN{0x2};
-
 const short Logger::CRIT{0x3};
 
 LoggerPrinter Logger::printer;
-
+const char* Logger::level_names[] = {
+    "D",
+    "I",
+    "W",
+    "C"
+};
 short Logger::log_level{Logger::DEBUG};
-
-formatter_func Logger::formatter{default_formatter};
 
 } // namespace p2p
 #endif // P2P_LOGGER_

@@ -16,6 +16,7 @@ using output_test = void (*)(matrix_vector &);
 #define LOG_ITERATIONS 100
 #define MATRIX_SIZE 1000
 #define PLACE_HOLDER_TEXT "TESTING"
+#define PAUSE(T) std::this_thread::sleep_for(std::chrono::milliseconds(T)) // give logs time to output
 
 void do_matrix_mult(matrix_vector &matrix)
 {
@@ -140,6 +141,17 @@ TEST(Logger, OutputFormat)
             cout << "regex error: " << e.what() << endl;
         }
     }
+}
+
+TEST(Logger, VariadicTest)
+{
+    Logger logger;
+    Logger::use_console();
+    Logger::log_level = Logger::DEBUG;
+    PAUSE(500);
+
+    logger.info("testing ", 4, " variadic ", 0x12, " functions");
+    PAUSE(200);
 }
 
 #pragma clang diagnostic pop

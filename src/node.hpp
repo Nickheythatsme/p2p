@@ -53,7 +53,7 @@ class Node: public P2pConnection
                 return false;
             }
             auto flen = fin.tellg();
-            char* contents = (char*) malloc(sizeof(char) * flen);
+            auto contents = (char*) malloc(sizeof(char) * flen);
             if (contents == nullptr) {
                 logger.info("Not enough memory");
                 return false;
