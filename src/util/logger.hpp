@@ -177,12 +177,7 @@ protected:
         char formatted_time[9];
         strftime(formatted_time, 9, time_fmt, current_time_tm);
 
-        ss << "[" << formatted_time << "][" << tag;
-        for (int i=tag.length(); i<8; ++i)
-        {
-            ss << " ";
-        }
-        ss << "][" << Logger::level_names[level] << "] ";
+        ss << "[" << formatted_time << "][" << tag << "][" << Logger::level_names[level] << "] ";
         return ss;
     }
     template<typename Arg, typename ...Ts>
