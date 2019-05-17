@@ -25,8 +25,6 @@ namespace p2p
 
 #define OUTPUT_FREQ 100
 
-using formatter_func = std::string (*)(const std::string &tag, short log_level, const std::string &message);
-
 class LoggerPrinter
 {
 public:
@@ -45,6 +43,13 @@ public:
     {
         std::lock_guard<std::mutex> guard(new_logs_lock);
         new_logs.emplace_back(std::move(message));
+    }
+    void crit_log(std::string&& message)
+    {
+        std::lock_guard<std::mutex> output_guard(output_streams_lock);
+        for (auto &out : output_streams) {
+                *out.second << message << std::endl;
+        }
     }
     bool remove_ostream(const std::string &key)
     {
@@ -166,7 +171,10 @@ protected:
         std::stringstream ss;
         add_log_header(ss, level);
         _accumulate_args(ss, rest...);
-        printer.add_log(ss.str());
+        if (level == Logger::CRIT)
+            printer.crit_log(ss.str());
+        else
+            printer.add_log(ss.str());
     }
     // Create standard message
     std::ostream& add_log_header(std::stringstream& ss, short level)
