@@ -47,5 +47,9 @@ add_test(NAME listener_test COMMAND listener_test)
 add_executable(ping_test ping_test.cpp)
 target_link_libraries(ping_test gtest_main)
 add_test(NAME ping_test COMMAND ping_test)
+
+add_executable(uuid_test uuid_test.cpp)
+target_link_libraries(uuid_test gtest_main)
+add_test(NAME uuid_test COMMAND uuid_test)
 ### END Add/Make tests
 
