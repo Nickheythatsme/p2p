@@ -30,11 +30,12 @@ class uuid
 std::ostream& operator<<(std::ostream& out, const uuid& u)
 {
     char suuid[37];
-    char* current = (char*) &u._1 - sizeof(unsigned long);
+    char* current = (char*) &u._1 + 0x4;
     for (int i=0; i<8; ++i)
     {
         sprintf(&suuid[i], "%x", *current);
-        ++current;
+        ++i;
+        --current;
     }
     suuid[36] = '\0';
     out << suuid;
