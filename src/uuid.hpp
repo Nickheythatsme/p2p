@@ -29,14 +29,18 @@ class uuid
 // XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 std::ostream& operator<<(std::ostream& out, const uuid& u)
 {
+    char suuid[37];
+    char* current = (char*) &u._1 - sizeof(unsigned long);
+    for (int i=0; i<8; ++i)
+    {
+        sprintf(&suuid[i], "%x", *current);
+        ++current;
+    }
+    suuid[36] = '\0';
+    out << suuid;
+
     #if defined(__BYTE_ORDER__)&&(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-    // Written for little endian
-    unsigned short* _2a = (unsigned short*)&u._2;
-    unsigned short* _2b = (unsigned short*)(&u._2 + 0x1);
-    out << "sizeof(unsigned short) = " << sizeof(unsigned short) << std::endl;
-    out << _2a << std::endl;
-    out << _2b << std::endl;
-    out << std::hex << u._1 << '-' << std::hex << *_2a << '-' << std::hex << *_2b;
+    // TODO
     #elif defined(__BYTE_ORDER__)&&(__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
     char *current_char = (char*)&_1;
     for (int i=0; i<4; ++i)
