@@ -27,6 +27,16 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 ### END Set up googletest
 
 
+set(OPENSSL_ROOT_DIR /usr/local/Cellar/openssl/1.0.2r)
+find_package(OpenSSL REQUIRED)
+if( OpenSSL_FOUND )
+    include_directories(${OPENSSL_INCLUDE_DIRS})
+    link_directories(${OPENSSL_LIBRARIES})
+    message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
+else()
+    message(WARN "Can't find OpenSSL")
+endif()
+
 ### Add/Make tests
 add_executable(example_test example_test.cpp ../src/util/config.hpp)
 target_link_libraries(example_test gtest_main)
@@ -51,5 +61,9 @@ add_test(NAME ping_test COMMAND ping_test)
 add_executable(uuid_test uuid_test.cpp ../src/uuid.cpp)
 target_link_libraries(uuid_test gtest_main)
 add_test(NAME uuid_test COMMAND uuid_test)
+
+add_executable(sha256_test sha256_test.cpp)
+target_link_libraries(sha256_test gtest_main ${OPENSSL_INCLUDE_DIRS})
+add_test(NAME sha256_test COMMAND sha256_test)
 ### END Add/Make tests
 
