@@ -9,25 +9,28 @@
 #include <memory>
 #include <exception>
 #include <string>
+#include <chrono>
 #include "util/logger.hpp"
 #include "util/config.hpp"
 #include "p2p_connection.hpp"
 
 namespace p2p {
 
+using Clock = std::chrono::system_clock;
+using TimePoint = std::chrono::time_point<Clock>;
+
 class Node: public P2pConnection
 {
     public:
         Node(const char* ip, const char* port):
-            P2pConnection(ip, port, false),
-            last_contact(0)
+            P2pConnection(ip, port, false)
         {
         }
         Node(Node&& rhs) noexcept :
             P2pConnection(std::move(rhs)),
             last_contact(rhs.last_contact)
         {
-            rhs.last_contact = 0;
+            rhs.last_contact = TimePoint::min();
         }
         // Ping another node
         bool ping()
@@ -43,26 +46,13 @@ class Node: public P2pConnection
             ssize_t valread = recv(sockfd, buffer, 1024, 0);
             buffer[valread] = '\0';
             logger.info(std::string("Response buffer: ") + std::string(buffer));
+            last_contact = std::chrono::system_clock::now();
             return true;
         }
-        bool send_file(const char* filename)
+        bool send_file(const char* contents, size_t len)
         {
-            std::ifstream fin(filename, std::ios::binary | std::ios::ate);
-            if (!fin) {
-                logger.info(std::string("invalid filename: ") + filename);
-                return false;
-            }
-            auto flen = fin.tellg();
-            auto contents = (char*) malloc(sizeof(char) * flen);
-            if (contents == nullptr) {
-                logger.info("Not enough memory");
-                return false;
-            }
-            fin.seekg(std::ios_base::end);
-            fin.read(contents, flen);
-
             if (!connected) _connect();
-            if (send(sockfd, contents, flen, MSG_NOSIGNAL) < 0) {
+            if (send(sockfd, contents, len, MSG_NOSIGNAL) < 0) {
                 logger.info(std::string("send to another node failed") + connection_exception().what());
                 return false;
             }
@@ -70,7 +60,15 @@ class Node: public P2pConnection
             ssize_t valread = recv(sockfd, buffer, 1024, 0);
             buffer[valread] = '\0';
             logger.info(std::string("Response buffer: ") + std::string(buffer));
+            last_contact = std::chrono::system_clock::now();
             return true;
+        }
+        // Number of seconds since last contact
+        long since_last_contact() const
+        {
+            auto now = Clock::now();
+            auto diff = std::chrono::duration_cast<std::chrono::seconds>(now - last_contact);
+            return diff.count();
         }
     protected:
         void _connect()
@@ -83,7 +81,7 @@ class Node: public P2pConnection
             }
             connected = true;
         }
-        time_t last_contact;
+        TimePoint last_contact {TimePoint::min()};
         bool connected {false};
     private:
         static Logger logger;

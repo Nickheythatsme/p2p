@@ -28,7 +28,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 
 
 ### Add/Make tests
-add_executable(example_test example_test.cpp ../src/util/config.hpp ../src/file_handler.cpp)
+add_executable(example_test example_test.cpp ../src/util/config.hpp)
 target_link_libraries(example_test gtest_main)
 add_test(NAME example_test COMMAND example_test)
 
@@ -51,9 +51,5 @@ add_test(NAME ping_test COMMAND ping_test)
 add_executable(uuid_test uuid_test.cpp ../src/uuid.cpp)
 target_link_libraries(uuid_test gtest_main)
 add_test(NAME uuid_test COMMAND uuid_test)
-
-add_executable(file_handler_test file_handler_test.cpp)
-target_link_libraries(file_handler_test gtest_main)
-add_test(NAME file_handler_test COMMAND file_handler_test)
 ### END Add/Make tests
 

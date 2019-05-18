@@ -35,7 +35,7 @@ TEST(Node, InvalidAddress) {
     };
 
     // Should not fail
-    for (const std::string addr : good_addresses)
+    for (const std::string& addr : good_addresses)
     {
         try {
             Node n(addr.c_str(), "8080");
