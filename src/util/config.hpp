@@ -13,26 +13,18 @@
     #include <cerrno>
 
     #if defined(__APPLE__) || defined(__FreeBSD__)
-        #undef  MSG_NOSIGNAL 
+
+        #undef  MSG_NOSIGNAL
         #define MSG_NOSIGNAL SO_NOSIGPIPE
 
         #undef  MSG_NOSIGNAL 
         #define MSG_NOSIGNAL SO_NOSIGPIPE
 
-        /*
-        #undef AF_UNSPEC
-        #define AF_UNSPEC PF_UNSPEC
 
-        #undef AF_INET6
-        #define AF_INET6 PF_INET6
-        */
-
-    #elif defined(__linux__)
-        // nothing
-
-    #else // Windows
-        // TODO add windows support for Protocol 
+    #else
     #endif
+#else // Windows machine
+// TODO add support for windows
 #endif
 
 #endif //CONFIG_HPP
