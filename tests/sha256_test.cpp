@@ -2,7 +2,7 @@
 // Created by Nick Grout on 2019-05-18.
 //
 
-#include "../src/sha256.h"
+#include "../src/HashCode.h"
 #include "gtest/gtest.h"
 
 using namespace p2p;
@@ -10,5 +10,5 @@ using namespace p2p;
 
 TEST(sha256, smoke)
 {
-    sha256 s;
+    HashCode s;
 }
