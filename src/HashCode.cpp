@@ -63,8 +63,6 @@ HashCode HashCode::set(const uint8_t* new_data)
 
 HashWriter::HashWriter()
 {
-    // Reference:
-    // https://stackoverflow.com/questions/2262386/generate-sha256-with-openssl-and-c
     SHA256_Init(&sha256);
 }
 
@@ -79,6 +77,11 @@ HashCode HashWriter::finalize()
     unsigned char data[256];
     SHA256_Final(data, &sha256);
     return hashCode.set((uint8_t*) data);
+}
+
+void HashWriter::reset()
+{
+    SHA256_Init(&sha256);
 }
 
 }

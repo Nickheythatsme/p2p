@@ -41,15 +41,18 @@ protected:
     uint8_t data[WIDTH];
 };
 
+// Reference:
+// https://stackoverflow.com/questions/2262386/generate-sha256-with-openssl-and-c
 class HashWriter
 {
 public:
     HashWriter();
     void write(const char* data, size_t len);
     HashCode finalize();
+    void reset();
 protected:
 private:
-    SHA256_CTX sha256 {0};
+    SHA256_CTX sha256;
 };
 
 
