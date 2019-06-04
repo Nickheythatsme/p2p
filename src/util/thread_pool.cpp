@@ -60,15 +60,15 @@ void Worker::start(routine_ptr routine, ...)
 
 Worker::~Worker()
 {
-    destroy_routine_attr(attr.get());
-    if (pthread_cancel(thread))
+    if (pthread_cond_signal(&attr->wait_cond))
     {
-        perror("error cancelling thread");
+        perror("error sending cond signal");
     }
     if (pthread_join(thread, nullptr))
     {
         perror("error joining thread");
     }
+    destroy_routine_attr(attr.get());
 }
 
 } //namespace p2p
