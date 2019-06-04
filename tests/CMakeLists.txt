@@ -26,6 +26,11 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  EXCLUDE_FROM_ALL)
 ### END Set up googletest
 
+### Find packages
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+###
+
 ### Add/Make tests
 add_executable(example_test example_test.cpp ../src/util/config.hpp)
 target_link_libraries(example_test gtest_main)
@@ -51,4 +56,7 @@ add_executable(uuid_test uuid_test.cpp ../src/uuid.cpp)
 target_link_libraries(uuid_test gtest_main)
 add_test(NAME uuid_test COMMAND uuid_test)
 
+add_executable(thread_pool_test thread_pool_test.cpp ../src/util/thread_pool.h)
+target_link_libraries(thread_pool_test gtest_main Threads::Threads)
+add_test(NAME thread_pool_test COMMAND thread_pool_test)
 ### END Add/Make tests
