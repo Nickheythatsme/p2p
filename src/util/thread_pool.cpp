@@ -60,11 +60,11 @@ void Worker::start(routine_ptr routine, ...)
 
 Worker::~Worker()
 {
-    if (pthread_cond_signal(&attr->wait_cond))
+    destroy_routine_attr(attr.get());
+    if (pthread_cancel(thread))
     {
-        perror("error sending cond signal");
+        perror("error cancelling thread");
     }
-    usleep(1000);
     if (pthread_join(thread, nullptr))
     {
         perror("error joining thread");
