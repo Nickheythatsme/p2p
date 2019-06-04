@@ -76,7 +76,6 @@ protected:
     void _accept_connections()
     {
         // TODO Register interrupt handler
-        logger.debug("Waiting for new connections");
         for (;;)
         {
             int new_socket = accept(sockfd, addr->ai_addr, &addr->ai_addrlen);
@@ -106,7 +105,7 @@ protected:
             buffer[bytes_read] = '\0';
             ss << buffer;
         } while (bytes_read > 0);
-        logger.debug(std::string("Request: ") + ss.str());
+        logger.debug("Request: ", ss.str());
         send(new_socket, "pong", strlen("pong"), MSG_NOSIGNAL);
         logger.debug("Response sent");
         close(new_socket);
