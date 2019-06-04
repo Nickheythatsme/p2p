@@ -10,23 +10,20 @@
 
 namespace p2p
 {
-struct routine_attr;
+struct sroutine_attr;
 
-using init_routine_ptr = void* (*)(struct routine_attr*);
-using routine_ptr = void* (*)(void**);
-using attr_ptr = std::shared_ptr<struct routine_attr>;
+using func_ptr = void* (*)(void**);
+using sroutine_attr_ptr = std::shared_ptr<struct sroutine_attr>;
 #define FAKE_THREAD 0
 
-struct routine_attr
+struct sroutine_attr
 {
     pthread_cond_t wait_cond;
     pthread_mutex_t wait_mutex;
-    routine_ptr routine;
-    bool do_wait {true};
+    func_ptr routine;
     void** args;
+    bool exit_when_done {false};
 };
-
-void destroy_routine_args(routine_attr*);
 
 class Worker
 {
@@ -35,13 +32,13 @@ class Worker
         Worker(const Worker& rhs) = delete;
         Worker(Worker&& rhs);
         ~Worker();
-        void start(routine_ptr, void** args);
+        void start(func_ptr ptr, void** args);
     protected:
     private:
-        static void init_routine_attr(routine_attr* rattr);
-        static void destroy_routine_attr(routine_attr* args);
+        static void init_sroutine_attr(sroutine_attr* rattr);
+        static void destroy_sroutine_attr(sroutine_attr* args);
         pthread_t thread;
-        attr_ptr attr;
+        sroutine_attr_ptr attr;
         void* ret_value {nullptr};
 };
 

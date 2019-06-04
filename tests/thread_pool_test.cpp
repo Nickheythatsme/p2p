@@ -74,3 +74,7 @@ TEST(ThreadPool, many_threads)
         workers.emplace_back(Worker());
     }
 }
+
+TEST(ThreadPool, thread_cycle)
+{
+}
