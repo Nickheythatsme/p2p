@@ -26,11 +26,6 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  EXCLUDE_FROM_ALL)
 ### END Set up googletest
 
-find_package(OpenSSL REQUIRED)
-if( OpenSSL_FOUND )
-    message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
-endif()
-
 ### Add/Make tests
 add_executable(example_test example_test.cpp ../src/util/config.hpp)
 target_link_libraries(example_test gtest_main)
@@ -56,7 +51,4 @@ add_executable(uuid_test uuid_test.cpp ../src/uuid.cpp)
 target_link_libraries(uuid_test gtest_main)
 add_test(NAME uuid_test COMMAND uuid_test)
 
-add_executable(sha256_test sha256_test.cpp ../src/HashCode.h ../src/HashCode.cpp)
-target_link_libraries(sha256_test gtest_main OpenSSL::Crypto)
-add_test(NAME sha256_test COMMAND sha256_test)
 ### END Add/Make tests

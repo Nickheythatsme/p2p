@@ -12,7 +12,6 @@
 #include <cstdlib>
 #include <cstring>
 
-
 // how long the connection queue can be before we send conn refused
 #define BACKLOG 10 
 
@@ -40,8 +39,6 @@ public:
         {
             throw connection_exception();
         }
-
-        logger.debug("Binding Socket to port");
         if (bind(sockfd, addr->ai_addr, addr->ai_addrlen) < 0)
         {
             throw connection_exception("Error binding");
@@ -51,11 +48,7 @@ public:
             throw connection_exception("Error listening");
         }
         // get host name and port message
-        char chostname[256];
-        gethostname(chostname, 256);
-        std::stringstream ss;
-        ss << "Listening on port: " << port << " Hostname: " << chostname;
-        logger.info(ss.str());
+        logger.info("Listening on port: ", port);
         listener_thread = std::make_unique<std::thread>(&Listener::_accept_connections, this);
     }
     bool using_ipv6() const
