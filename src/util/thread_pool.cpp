@@ -10,7 +10,7 @@ void* init_routine(void* arg_attr)
     printf("Worker: waiting!\n");
     pthread_cond_wait(&attr->wait_cond, &attr->wait_mutex);
     printf("Worker: resuming!\n");
-    return attr->routine(*attr->args);
+    return attr->routine(attr->args);
 }
 
 Worker::Worker()
@@ -34,10 +34,7 @@ void Worker::init_routine_attr(routine_attr* attr)
 
 void Worker::destroy_routine_attr(routine_attr* attr)
 {
-    if (attr->args)
-    {
-        va_end(*attr->args);
-    }
+    va_end(attr->args);
     if (pthread_cond_destroy(&attr->wait_cond))
     {
         perror("error destroying wait condition");
@@ -49,8 +46,16 @@ void Worker::destroy_routine_attr(routine_attr* attr)
 
 }
 
-void Worker::start(routine_ptr, ...)
+void Worker::start(routine_ptr routine, ...)
 {
+    attr->routine = routine;
+    va_list list;
+    va_start(list, routine);
+    va_copy(attr->args, list);
+    if (pthread_cond_signal(&attr->wait_cond))
+    {
+        perror("error sending cond signal");
+    }
 }
 
 Worker::~Worker()

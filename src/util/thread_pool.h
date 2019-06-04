@@ -22,7 +22,7 @@ struct routine_attr
     pthread_cond_t wait_cond;
     pthread_mutex_t wait_mutex;
     routine_ptr routine;
-    va_list* args {nullptr};
+    va_list args;
 };
 
 class Worker
