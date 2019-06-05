@@ -97,6 +97,7 @@ TEST(Logger, Speed)
 
 TEST(Logger, OutputFormat)
 {
+    PAUSE(300);
     Logger logger("output");
     Logger::add_file("output-test.out", false);
     Logger::log_level = Logger::INFO;
