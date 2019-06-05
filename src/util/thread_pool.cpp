@@ -3,47 +3,62 @@
 #include <unistd.h>
 
 namespace p2p {
+void* sroutine(void* arg_attr);
 
-void* sroutine(void* arg_attr)
+void* init_sroutine(void* arg_attr)
 {
     // Get args
     sroutine_attr* attr = (sroutine_attr*) arg_attr;
-    if (pthread_mutex_lock(&attr->wait_mutex))
-    {
-        perror("error locking mutex");
-    }
+
+    pthread_mutex_lock(&attr->wait_mutex); // lock
+    bool exit_when_done = attr->exit_when_done;
     func_ptr next_routine = attr->routine;
     void** next_args = attr->args;
-    bool do_exit = attr->exit_when_done;
     attr->routine = nullptr;
     attr->args = nullptr;
-    if (pthread_mutex_unlock(&attr->wait_mutex))
-    {
-        perror("error unlocking mutex");
-    }
-
-    if (do_exit)
-    {
-        pthread_exit(nullptr);
-    }
+    pthread_mutex_unlock(&attr->wait_mutex); // unlock
 
     if (next_routine)
     {
         next_routine(next_args);
     }
+    if (exit_when_done)
+    {
+        return nullptr;
+    }
+    return sroutine(arg_attr);
+    
+}
 
-    printf("Worker: waiting!\n");
-    pthread_cond_wait(&attr->wait_cond, &attr->wait_mutex);
-    printf("Worker: resuming!\n");
+void* sroutine(void* arg_attr)
+{
+    // Get args
+    sroutine_attr* attr = (sroutine_attr*) arg_attr;
 
-    sroutine(arg_attr);
+    pthread_cond_wait(&attr->wait_cond, &attr->wait_mutex); // wait, lock
+
+    bool exit_when_done = attr->exit_when_done;
+    func_ptr next_routine = attr->routine;
+    void** next_args = attr->args;
+    attr->routine = nullptr;
+    attr->args = nullptr;
+
+    pthread_mutex_unlock(&attr->wait_mutex); // unlock
+
+    if (exit_when_done)
+    {
+        pthread_exit(nullptr);
+    }
+    next_routine(next_args);
+
+    return sroutine(arg_attr);
 }
 
 Worker::Worker()
 {
     attr.reset(new sroutine_attr());
     init_sroutine_attr(attr.get());
-    pthread_create(&thread, nullptr, sroutine, attr.get());
+    pthread_create(&thread, nullptr, init_sroutine, attr.get());
 }
 
 void Worker::init_sroutine_attr(sroutine_attr* attr)
@@ -60,28 +75,14 @@ void Worker::init_sroutine_attr(sroutine_attr* attr)
 
 void Worker::destroy_sroutine_attr(sroutine_attr* attr)
 {
-    if (pthread_cond_destroy(&attr->wait_cond))
-    {
-        perror("error destroying wait condition");
-    }
-    if (pthread_mutex_destroy(&attr->wait_mutex))
-    {
-        perror("error destroying wait mutex");
-    }
+    pthread_cond_destroy(&attr->wait_cond);
+    pthread_mutex_destroy(&attr->wait_mutex);
 }
 
 void Worker::start(func_ptr routine, void** args)
 {
-    if (pthread_mutex_lock(&attr->wait_mutex))
-    {
-        perror("error locking mutex");
-    }
     attr->routine = routine;
     attr->args = args;
-    if (pthread_mutex_unlock(&attr->wait_mutex))
-    {
-        perror("error unlocking mutex");
-    }
     if (pthread_cond_signal(&attr->wait_cond))
     {
         perror("error sending cond signal");
@@ -100,25 +101,12 @@ Worker::~Worker()
     if (thread == FAKE_THREAD)
         return;
 
-    if (pthread_mutex_lock(&attr->wait_mutex))
-    {
-        perror("error locking mutex");
-    }
+    pthread_mutex_lock(&attr->wait_mutex); // lock
     attr->exit_when_done = true;
-    // TODO delete args
-    if (pthread_mutex_unlock(&attr->wait_mutex))
-    {
-        perror("error unlocking mutex");
-    }
+    pthread_mutex_unlock(&attr->wait_mutex); // unlock
 
-    if (pthread_cond_signal(&attr->wait_cond))
-    {
-        perror("error sending cond signal");
-    }
-    if (pthread_join(thread, &ret_value))
-    {
-        perror("error joining thread");
-    }
+    pthread_cond_signal(&attr->wait_cond);
+    pthread_join(thread, &ret_value);
     destroy_sroutine_attr(attr.get());
 }
 

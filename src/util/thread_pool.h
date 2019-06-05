@@ -20,8 +20,8 @@ struct sroutine_attr
 {
     pthread_cond_t wait_cond;
     pthread_mutex_t wait_mutex;
-    func_ptr routine;
-    void** args;
+    func_ptr routine {nullptr};
+    void** args {nullptr};
     bool exit_when_done {false};
 };
 

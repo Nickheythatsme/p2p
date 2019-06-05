@@ -68,7 +68,7 @@ TEST(ThreadPool, basic_test)
 TEST(ThreadPool, many_threads)
 {
     std::vector<Worker> workers;
-    for (int i=0; i<20; ++i)
+    for (int i=0; i<2; ++i)
     {
         printf("Making worker %d\n", i);
         workers.emplace_back(Worker());
@@ -78,3 +78,4 @@ TEST(ThreadPool, many_threads)
 TEST(ThreadPool, thread_cycle)
 {
 }
+
