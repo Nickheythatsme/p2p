@@ -22,9 +22,9 @@ TEST(ThreadPool, smoke_test)
 using callback_ptr = void* (*)(void** args);
 void* long_task(void** args)
 {
-    size_t len = (size_t) args[0];
+    auto len = (size_t) args[0];
     int* array = (int*) args[1];
-    callback_ptr callback = (callback_ptr) args[2];
+    auto callback = (callback_ptr) args[2];
     printf("long task: starting\n");
 
     for (int i=0; i<len; ++i)
@@ -36,8 +36,7 @@ void* long_task(void** args)
 
 void* callback(void** args)
 {
-    auto len = (size_t) args[0];
-    int* array = (int*) args[1];
+    auto array = (int*) args[1];
     printf("callback: starting\n");
     assert(array[0] == 100);
     printf("callback: array[0] == %d\n", array[0]);

@@ -27,19 +27,18 @@ void* init_sroutine(void* arg_attr)
         return nullptr;
     }
     return sroutine(arg_attr);
-    
 }
 
 void* sroutine(void* arg_attr)
 {
     // Get args
-    sroutine_attr* attr = (sroutine_attr*) arg_attr;
+    auto attr = (sroutine_attr*) arg_attr;
 
     pthread_cond_wait(&attr->wait_cond, &attr->wait_mutex); // wait, lock
 
-    bool exit_when_done = attr->exit_when_done;
+    auto exit_when_done = attr->exit_when_done;
     func_ptr next_routine = attr->routine;
-    void** next_args = attr->args;
+    auto next_args = attr->args;
     attr->routine = nullptr;
     attr->args = nullptr;
 
@@ -93,12 +92,12 @@ Worker::Worker(Worker&& rhs)
 {
     attr = std::move(rhs.attr);
     thread = rhs.thread;
-    rhs.thread = FAKE_THREAD;
+    rhs.thread = FALSE_THREAD;
 }
 
 Worker::~Worker()
 {
-    if (thread == FAKE_THREAD)
+    if (thread == FALSE_THREAD)
         return;
 
     pthread_mutex_lock(&attr->wait_mutex); // lock

@@ -14,7 +14,7 @@ struct sroutine_attr;
 
 using func_ptr = void* (*)(void**);
 using sroutine_attr_ptr = std::shared_ptr<struct sroutine_attr>;
-#define FAKE_THREAD 0
+#define FALSE_THREAD 0
 
 struct sroutine_attr
 {
@@ -37,7 +37,7 @@ class Worker
     private:
         static void init_sroutine_attr(sroutine_attr* rattr);
         static void destroy_sroutine_attr(sroutine_attr* args);
-        pthread_t thread;
+        pthread_t thread {FALSE_THREAD};
         sroutine_attr_ptr attr;
         void* ret_value {nullptr};
 };
