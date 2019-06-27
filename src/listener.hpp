@@ -84,7 +84,8 @@ protected:
                 throw connection_exception("Error when accepting new connection");
             }
             logger.debug("Accepted new connection");
-            std::thread(&Listener::read_respond, this, new_socket).detach(); // TODO create threadpool
+            // TODO add thread pool
+            std::thread(&Listener::read_respond, this, new_socket).detach();
         }
     }
     // TODO do routing here. Is it a ping? A file? A routing table?

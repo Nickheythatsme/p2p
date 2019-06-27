@@ -59,4 +59,8 @@ add_test(NAME uuid_test COMMAND uuid_test)
 add_executable(thread_pool_test thread_pool_test.cpp ../src/util/thread_pool.h)
 target_link_libraries(thread_pool_test gtest_main Threads::Threads)
 add_test(NAME thread_pool_test COMMAND thread_pool_test)
+
+add_executable(routing_test routing_test.cpp ../src/uuid.cpp ../src/uuid.h)
+target_link_libraries(routing_test gtest_main)
+add_test(NAME routing_test COMMAND routing_test)
 ### END Add/Make tests

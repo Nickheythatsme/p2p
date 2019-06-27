@@ -13,6 +13,7 @@ namespace p2p {
 class UUID
 {
 public:
+    UUID(const char* suuid);
     UUID(UUID&& rhs) = default;
     UUID(const UUID& rhs) = default;
 

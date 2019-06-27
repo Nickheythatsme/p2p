@@ -1,6 +1,12 @@
 //
 // Created by Nick Grout on 2019-05-18.
 //
+// A uuid is a globally unique 36 character string. 
+// This implementation is pretty wonky in that we use two 8 byte integers to hold
+// the uuid. I thought there would be a performance benefit to using integers,
+// however I have not tested this and a single 16 byte array would probably have
+// identical performance.
+
 #include "uuid.h"
 
 namespace p2p {
@@ -24,6 +30,11 @@ UUID UUID::init_random()
     _uuid._2 |= 0x8000000000000000ul;
 
     return _uuid;
+}
+
+UUID::UUID(const char* suuid)
+{
+    *this = UUID::parse(suuid);
 }
 
 UUID UUID::parse(const char* suuid)
@@ -214,7 +225,7 @@ UUID& UUID::operator=(const UUID& uuid)
     return *this;
 }
 
-// Equality
+// Equality operators
 bool UUID::operator==(const UUID& rhs) const
 {
     return _1 == rhs._1 && _2 == rhs._2;

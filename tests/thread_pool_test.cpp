@@ -10,11 +10,7 @@
 #include <vector>
 
 using namespace p2p;
-<<<<<<< HEAD
 #define PAUSE(T) usleep(T*1000);
-=======
-#define PAUSE(T) usleep(T*1000000);
->>>>>>> 29bbb72c3b40a59ff211a90f14954829b98de7e3
 
 TEST(ThreadPool, smoke_test)
 {

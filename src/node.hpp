@@ -45,7 +45,7 @@ class Node: public P2pConnection
             char buffer[1024];
             ssize_t valread = recv(sockfd, buffer, 1024, 0);
             buffer[valread] = '\0';
-            logger.info(std::string("Response buffer: ") + std::string(buffer));
+            logger.info("Response buffer: ", buffer);
             last_contact = std::chrono::system_clock::now();
             return true;
         }
@@ -53,13 +53,13 @@ class Node: public P2pConnection
         {
             if (!connected) _connect();
             if (send(sockfd, contents, len, MSG_NOSIGNAL) < 0) {
-                logger.info(std::string("send to another node failed") + connection_exception().what());
+                logger.info("send to another node failed: ", connection_exception().what());
                 return false;
             }
             char buffer[1024];
             ssize_t valread = recv(sockfd, buffer, 1024, 0);
             buffer[valread] = '\0';
-            logger.info(std::string("Response buffer: ") + std::string(buffer));
+            logger.info("Response buffer: ", buffer);
             last_contact = std::chrono::system_clock::now();
             return true;
         }
@@ -74,9 +74,7 @@ class Node: public P2pConnection
         void _connect()
         {
             if (connect(sockfd, addr->ai_addr, addr->ai_addrlen) < 0) {
-                std::stringstream ss;
-                ss << "Could not connect: " << connection_exception().what();
-                logger.debug(ss.str());
+                logger.debug("Could not connect: ", connection_exception().what());
                 return;
             }
             connected = true;
