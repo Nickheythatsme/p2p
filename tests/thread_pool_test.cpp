@@ -7,7 +7,7 @@
 #include <ctime>
 
 using namespace p2p;
-#define PAUSE(T) usleep(T);
+#define PAUSE(T) usleep(T*1000);
 
 TEST(ThreadPool, smoke_test)
 {
