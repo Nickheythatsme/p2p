@@ -3,24 +3,64 @@
 #include <unistd.h>
 
 namespace p2p {
+void* sroutine(void* arg_attr);
 
-void* init_routine(void* arg_attr)
+void* init_sroutine(void* arg_attr)
 {
-    routine_attr* attr = (routine_attr*) arg_attr;
-    printf("Worker: waiting!\n");
-    pthread_cond_wait(&attr->wait_cond, &attr->wait_mutex);
-    printf("Worker: resuming!\n");
-    return attr->routine(attr->args);
+    // Get args
+    sroutine_attr* attr = (sroutine_attr*) arg_attr;
+
+    pthread_mutex_lock(&attr->wait_mutex); // lock
+    bool exit_when_done = attr->exit_when_done;
+    func_ptr next_routine = attr->routine;
+    void** next_args = attr->args;
+    attr->routine = nullptr;
+    attr->args = nullptr;
+    pthread_mutex_unlock(&attr->wait_mutex); // unlock
+
+    if (next_routine)
+    {
+        next_routine(next_args);
+    }
+    if (exit_when_done)
+    {
+        return nullptr;
+    }
+    return sroutine(arg_attr);
+}
+
+void* sroutine(void* arg_attr)
+{
+    // Get args
+    auto attr = (sroutine_attr*) arg_attr;
+
+    pthread_cond_wait(&attr->wait_cond, &attr->wait_mutex); // wait, lock
+
+    auto exit_when_done = attr->exit_when_done;
+    func_ptr next_routine = attr->routine;
+    auto next_args = attr->args;
+    attr->routine = nullptr;
+    attr->args = nullptr;
+
+    pthread_mutex_unlock(&attr->wait_mutex); // unlock
+
+    if (exit_when_done)
+    {
+        pthread_exit(nullptr);
+    }
+    next_routine(next_args);
+
+    return sroutine(arg_attr);
 }
 
 Worker::Worker()
 {
-    attr = std::make_shared<struct routine_attr>();
-    init_routine_attr(attr.get());
-    pthread_create(&thread, nullptr, init_routine, attr.get());
+    attr.reset(new sroutine_attr());
+    init_sroutine_attr(attr.get());
+    pthread_create(&thread, nullptr, init_sroutine, attr.get());
 }
 
-void Worker::init_routine_attr(routine_attr* attr)
+void Worker::init_sroutine_attr(sroutine_attr* attr)
 {
     if (pthread_cond_init(&attr->wait_cond, nullptr))
     {
@@ -32,43 +72,41 @@ void Worker::init_routine_attr(routine_attr* attr)
     }
 }
 
-void Worker::destroy_routine_attr(routine_attr* attr)
+void Worker::destroy_sroutine_attr(sroutine_attr* attr)
 {
-    va_end(attr->args);
-    if (pthread_cond_destroy(&attr->wait_cond))
-    {
-        perror("error destroying wait condition");
-    }
-    if (pthread_mutex_destroy(&attr->wait_mutex))
-    {
-        perror("error destroying wait mutex");
-    }
-
+    pthread_cond_destroy(&attr->wait_cond);
+    pthread_mutex_destroy(&attr->wait_mutex);
 }
 
-void Worker::start(routine_ptr routine, ...)
+void Worker::start(func_ptr routine, void** args)
 {
     attr->routine = routine;
-    va_list list;
-    va_start(list, routine);
-    va_copy(attr->args, list);
+    attr->args = args;
     if (pthread_cond_signal(&attr->wait_cond))
     {
         perror("error sending cond signal");
     }
+}
+
+Worker::Worker(Worker&& rhs)
+{
+    attr = std::move(rhs.attr);
+    thread = rhs.thread;
+    rhs.thread = FALSE_THREAD;
 }
 
 Worker::~Worker()
 {
-    if (pthread_cond_signal(&attr->wait_cond))
-    {
-        perror("error sending cond signal");
-    }
-    if (pthread_join(thread, nullptr))
-    {
-        perror("error joining thread");
-    }
-    destroy_routine_attr(attr.get());
+    if (thread == FALSE_THREAD)
+        return;
+
+    pthread_mutex_lock(&attr->wait_mutex); // lock
+    attr->exit_when_done = true;
+    pthread_mutex_unlock(&attr->wait_mutex); // unlock
+
+    pthread_cond_signal(&attr->wait_cond);
+    pthread_join(thread, &ret_value);
+    destroy_sroutine_attr(attr.get());
 }
 
 } //namespace p2p

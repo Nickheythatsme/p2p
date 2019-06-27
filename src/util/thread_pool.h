@@ -5,38 +5,41 @@
 
 #include <pthread.h>
 #include <stdarg.h>
-#include <mutex>
 #include <cstdio>
 #include <memory>
 
 namespace p2p
 {
-struct routine_attr;
+struct sroutine_attr;
 
-using init_routine_ptr = void* (*)(struct routine_attr*);
-using routine_ptr = void* (*)(va_list);
-using attr_ptr = std::shared_ptr<struct routine_attr>;
+using func_ptr = void* (*)(void**);
+using sroutine_attr_ptr = std::shared_ptr<struct sroutine_attr>;
+#define FALSE_THREAD 0
 
-struct routine_attr
+struct sroutine_attr
 {
     pthread_cond_t wait_cond;
     pthread_mutex_t wait_mutex;
-    routine_ptr routine;
-    va_list args;
+    func_ptr routine {nullptr};
+    void** args {nullptr};
+    bool exit_when_done {false};
 };
 
 class Worker
 {
     public:
         Worker();
+        Worker(const Worker& rhs) = delete;
+        Worker(Worker&& rhs);
         ~Worker();
-        void start(routine_ptr, ...);
+        void start(func_ptr ptr, void** args);
     protected:
     private:
-        static void init_routine_attr(routine_attr* rattr);
-        static void destroy_routine_attr(routine_attr* args);
-        pthread_t thread;
-        attr_ptr attr;
+        static void init_sroutine_attr(sroutine_attr* rattr);
+        static void destroy_sroutine_attr(sroutine_attr* args);
+        pthread_t thread {FALSE_THREAD};
+        sroutine_attr_ptr attr;
+        void* ret_value {nullptr};
 };
 
 } // namespace p2p
