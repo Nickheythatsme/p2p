@@ -36,7 +36,7 @@ add_executable(example_test example_test.cpp)
 target_link_libraries(example_test gtest_main)
 add_test(NAME example_test COMMAND example_test)
 
-add_executable(hash_test hash_test.cpp ../src/super_fast_hash.c)
-target_link_libraries(hash_test gtest_main)
-add_test(NAME hash_test COMMAND hash_test)
+add_executable(smoke_test smoke_test.cpp ../src/super_fast_hash.c)
+target_link_libraries(smoke_test gtest_main)
+add_test(NAME smoke_test COMMAND smoke_test)
 ### END Add/Make tests

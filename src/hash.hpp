@@ -2,13 +2,14 @@
 // Created by Nick Grout on 2019-08-13.
 //
 
+// TODO fix hash possibly using openssl https://stackoverflow.com/questions/918676/generate-sha-hash-in-c-using-openssl-library
+
 #ifndef HASH_HPP
 #define HASH_HPP
 
 #include <ostream>
 #include <string>
 #define MAX_BUFFSIZE 1024
-
 
 
 namespace p2p {
@@ -47,12 +48,14 @@ public:
         size_t i = 0, increment = len/4, remainder = len % 4;
 
         for (; i < len - remainder; i += increment) {
-            hash[index] ^= SuperFastHash(&new_contents[i], increment);
-            ++index %= 8;
+            auto new_value = SuperFastHash(&new_contents[i], increment);
+            hash[index] ^= new_value;
+            index = new_value % 8;
         }
 
-        hash[index] ^= SuperFastHash(&new_contents[i], remainder);
-        ++index %= 8;
+        auto new_value = SuperFastHash(&new_contents[i], increment);
+        hash[index] ^= new_value;
+        index = new_value % 8;
     }
     std::ostream& finalize(std::ostream& out) override
     {
