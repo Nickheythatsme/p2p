@@ -32,35 +32,11 @@ find_package(Threads REQUIRED)
 ###
 
 ### Add/Make tests
-add_executable(example_test example_test.cpp ../src/util/config.hpp)
+add_executable(example_test example_test.cpp)
 target_link_libraries(example_test gtest_main)
 add_test(NAME example_test COMMAND example_test)
 
-add_executable(node_test node_test.cpp)
-target_link_libraries(node_test gtest_main)
-add_test(NAME node_test COMMAND node_test)
-
-add_executable(logger_test logger_test.cpp)
-target_link_libraries(logger_test gtest_main)
-add_test(NAME logger_test COMMAND logger_test)
-
-add_executable(listener_test listener_test.cpp)
-target_link_libraries(listener_test gtest_main)
-add_test(NAME listener_test COMMAND listener_test)
-
-add_executable(ping_test ping_test.cpp)
-target_link_libraries(ping_test gtest_main)
-add_test(NAME ping_test COMMAND ping_test)
-
-add_executable(uuid_test uuid_test.cpp ../src/uuid.cpp)
-target_link_libraries(uuid_test gtest_main)
-add_test(NAME uuid_test COMMAND uuid_test)
-
-add_executable(thread_pool_test thread_pool_test.cpp ../src/util/thread_pool.h)
-target_link_libraries(thread_pool_test gtest_main Threads::Threads)
-add_test(NAME thread_pool_test COMMAND thread_pool_test)
-
-add_executable(routing_test routing_test.cpp ../src/uuid.cpp ../src/uuid.h)
-target_link_libraries(routing_test gtest_main)
-add_test(NAME routing_test COMMAND routing_test)
+add_executable(hash_test hash_test.cpp ../src/super_fast_hash.c)
+target_link_libraries(hash_test gtest_main)
+add_test(NAME hash_test COMMAND hash_test)
 ### END Add/Make tests

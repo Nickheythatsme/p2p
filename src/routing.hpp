@@ -3,11 +3,8 @@
 #ifndef P2P_ROUTING_
 #define P2P_ROUTING_
 
-
 #include <string>
 #include <memory>
-#include "util/logger.hpp"
-#include "uuid.h"
 
 namespace p2p {
 
@@ -19,7 +16,6 @@ class File
             uuid(rhs.uuid)
         { }
     protected:
-        UUID uuid {UUID::init_random()};
     private:
 };
 

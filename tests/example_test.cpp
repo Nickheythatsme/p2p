@@ -4,9 +4,9 @@
 using std::cout;
 using std::endl;
 
-TEST(SmokeTests, TestingWorks) {
+TEST(SmokeTests, ExampleTest) {
     EXPECT_EQ(1,1);
-    cout << "testing logging..." << endl;
+    cout << "example test..." << endl;
 }
 
 
