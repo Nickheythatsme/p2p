@@ -29,24 +29,16 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 ### Find packages
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-###
+
+### Find openssl
+find_package(openssl REQUIRED)
 
 ### Add/Make tests
 add_executable(example_test example_test.cpp)
 target_link_libraries(example_test gtest_main)
 add_test(NAME example_test COMMAND example_test)
 
-<<<<<<< HEAD
-add_executable(hash_test hash_test.cpp ../src/super_fast_hash.c)
-target_link_libraries(hash_test gtest_main)
-add_test(NAME hash_test COMMAND hash_test)
-
-add_executable(uuid_test uuid_test.cpp ../src/uuid.cpp)
-target_link_libraries(uuid_test gtest_main)
-add_test(NAME uuid_test COMMAND uuid_test)
-=======
-add_executable(smoke_test smoke_test.cpp ../src/super_fast_hash.c)
-target_link_libraries(smoke_test gtest_main)
+add_executable(smoke_test smoke_test.cpp)
+target_link_libraries(smoke_test gtest_main OpenSSL::SSL)
 add_test(NAME smoke_test COMMAND smoke_test)
->>>>>>> 35351066d6bdefd88f879c54b7e134f5765293e2
 ### END Add/Make tests

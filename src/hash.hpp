@@ -2,27 +2,23 @@
 // Created by Nick Grout on 2019-08-13.
 //
 
-// TODO fix hash possibly using openssl https://stackoverflow.com/questions/918676/generate-sha-hash-in-c-using-openssl-library
 
 #ifndef HASH_HPP
 #define HASH_HPP
 
 #include <ostream>
-#include <string>
-#define MAX_BUFFSIZE 1024
-
+#include <openssl/sha.h>
+#include <memory>
 
 namespace p2p {
-
-extern "C" uint32_t SuperFastHash(const char * data, u_int64_t len);
 
 class BaseHash
 {
 public:
+    BaseHash() = default;
     virtual ~BaseHash() = default;
-    virtual void write(std::istream& new_contents) = 0;
-    virtual void write(const char* new_contents, size_t len) = 0;
-    virtual std::ostream& finalize(std::ostream& out) = 0;
+    virtual int update(const void* data, size_t len) = 0;
+    virtual std::unique_ptr<unsigned char> final() = 0;
 protected:
 private:
 };
@@ -30,54 +26,25 @@ private:
 class Hash256: public BaseHash
 {
 public:
-    Hash256() = default;
+    Hash256(): BaseHash()
+    {
+        SHA256_Init(ctx.get());
+    }
     ~Hash256() = default;
-    void write(std::istream& new_contents) override
+    int update(const void* data, size_t len) override
     {
-        char buff[MAX_BUFFSIZE];
-        new_contents.peek();
-
-        while(!new_contents.eof()) {
-            new_contents.read(buff, MAX_BUFFSIZE);
-            auto len = new_contents.gcount();
-            this->write(buff, len);
-        }
+        return SHA256_Update(ctx.get(), data, len);
     }
-    void write(const char* new_contents, size_t len) override
+    std::unique_ptr<unsigned char> final() override
     {
-        size_t i = 0, increment = len/4, remainder = len % 4;
-
-        for (; i < len - remainder; i += increment) {
-            auto new_value = SuperFastHash(&new_contents[i], increment);
-            hash[index] ^= new_value;
-            index = new_value % 8;
-        }
-
-        auto new_value = SuperFastHash(&new_contents[i], increment);
-        hash[index] ^= new_value;
-        index = new_value % 8;
-    }
-    std::ostream& finalize(std::ostream& out) override
-    {
-        for (const auto& hash_value : hash) {
-            out << std::hex << hash_value;
-        }
-        return out;
-    }
-    std::string finalize()
-    {
-        std::stringstream ss;
-        finalize(ss);
-        return ss.str();
-    }
-    friend bool operator==(const Hash256& lhs, const Hash256& rhs)
-    {
-        return memcmp(lhs.hash, rhs.hash, sizeof(rhs.hash));
+        std::unique_ptr<unsigned char> md {new unsigned char[SHA_DIGEST_LENGTH]};
+        SHA256_Final(md.get(), ctx.get());
+        return md;
     }
 protected:
+    std::unique_ptr<SHA256_CTX> ctx {new SHA256_CTX()};
+
 private:
-    uint32_t hash[8] {0};
-    int index {0};
 };
 
 }
