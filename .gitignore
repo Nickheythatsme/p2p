@@ -33,6 +33,7 @@
 
 # Build dir
 **/_build
+**/_debug
 
 # ignore cmake dirs & files
 **/CMakeFiles
