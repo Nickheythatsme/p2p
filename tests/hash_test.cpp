@@ -22,7 +22,7 @@ TEST(SmokeTests, ExampleTest) {
     Hash256 hash256;
     ifstream fin("../CMakeLists.txt.in");
     if (!fin) {
-        cerr << "Could not open file " << "Makefile" << endl;
+        cerr << "Could not open file " << "../CMakeLists.txt.in" << endl;
     }
     // hash256.write("testing!", strlen("testing!"));
     hash256.write(fin);
