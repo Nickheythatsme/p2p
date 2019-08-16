@@ -34,7 +34,7 @@ TEST(HashTest, SmokeTest) {
     auto hashObject = hashBuilder.finalize();
     std::stringstream ss_out;
     ss_out << hashObject;
-    ASSERT_EQ(ss_out.str(), "1fa8c9f82382d114db6f406570faaaf6b77a");
+    ASSERT_EQ(ss_out.str(), "1fa8c9f82382d114db6f406570faaaf6b77aa28281357ebc2c4756e9cd15");
 }
 
 TEST(HashTest, Equality)
@@ -57,7 +57,7 @@ TEST(HashTest, TestBuilder)
 {
     {
         HashBuilder hashBuilder;
-        hashBuilder.update("this is a test", strlen("this is a test"));
+        hashBuilder.write(reinterpret_cast<const unsigned char*>("this is a test"), strlen("this is a test"));
         hashBuilder.finalize();
 
         ASSERT_THROW(hashBuilder.finalize(), hash_exception);
@@ -65,11 +65,11 @@ TEST(HashTest, TestBuilder)
 
     {
         HashBuilder hashBuilder;
-        hashBuilder.update("this is a test", strlen("this is a test"));
+        hashBuilder.write(reinterpret_cast<const unsigned char*>("this is a test"), strlen("this is a test"));
         hashBuilder.finalize();
 
         ASSERT_THROW(
-            hashBuilder.update("this is a test", strlen("this is a test")),
+            hashBuilder.write(reinterpret_cast<const unsigned char*>("this is a test"), strlen("this is a test")),
             hash_exception
         );
     }

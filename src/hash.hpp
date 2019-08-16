@@ -1,21 +1,15 @@
-#include <memory>
-
-#include <memory>
-
 //
 // Created by Nick Grout on 2019-08-13.
 //
 
-
 #ifndef HASH_HPP
 #define HASH_HPP
 
+#include "crypto/sha256.h"
 #include <ostream>
-#include <openssl/sha.h>
 #include <memory>
 #include <exception>
 #include <cstring>
-#include <cstdio>
 
 namespace p2p {
 
@@ -47,19 +41,19 @@ public:
     { }
     HashObject(const HashObject &rhs)
     {
-        hash_value = std::make_unique<unsigned char[]>(SHA_DIGEST_LENGTH);
-        memcpy(hash_value.get(), rhs.hash_value.get(), SHA_DIGEST_LENGTH);
+        hash_value = std::make_unique<unsigned char[]>(CSHA256::OUTPUT_SIZE);
+        memcpy(hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);
     }
+    // NOTE: this breaks rhs, any usage of it after this call will cause a seg fault
     HashObject(HashObject &&rhs) noexcept:
         hash_value(std::move(rhs.hash_value))
     {
         rhs.hash_value.reset(nullptr);
-        // NOTE: rhs is now broken, and any usage of it will cause a seg fault
     }
     friend std::ostream& operator<<(std::ostream& out, const HashObject& to_print)
     {
         auto previous_flags = out.flags();
-        for (int i=0; i<SHA_DIGEST_LENGTH; ++i)
+        for (int i=0; i<CSHA256::OUTPUT_SIZE; ++i)
         {
             out << std::hex << static_cast<int>(to_print.hash_value[i]);
         }
@@ -68,7 +62,7 @@ public:
     }
     int compare(const HashObject& rhs) const
     {
-        return memcmp(this->hash_value.get(), rhs.hash_value.get(), SHA_DIGEST_LENGTH);
+        return memcmp(this->hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);
     }
     friend bool operator==(const HashObject& lhs, const HashObject& rhs)
     {
@@ -96,8 +90,8 @@ public:
     }
     HashObject& operator=(const HashObject& rhs)
     {
-        hash_value = std::make_unique<unsigned char[]>(SHA_DIGEST_LENGTH);
-        memcpy(hash_value.get(), rhs.hash_value.get(), SHA_DIGEST_LENGTH);
+        hash_value = std::make_unique<unsigned char[]>(CSHA256::OUTPUT_SIZE);
+        memcpy(hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);
         return *this;
     }
 protected:
@@ -107,26 +101,26 @@ protected:
 class HashBuilder
 {
 public:
-    HashBuilder()
-    {
-        SHA256_Init(ctx.get());
-    }
+    HashBuilder():
+        csha256()
+    { }
     ~HashBuilder() = default;
-    int update(const void* data, size_t len)
+    HashBuilder& write(const unsigned char* data, size_t len)
     {
         if(finalized) {
             throw hash_exception("hash cannot be updated after being finalized");
         }
-        return SHA256_Update(ctx.get(), data, len);
+        csha256.Write(data, len);
+        return *this;
     }
     friend std::istream& operator>>(std::istream& in, HashBuilder& rhs)
     {
-        char buff[2048];
-        in.read(buff, 2048);
-        rhs.update(buff, in.gcount());
+        unsigned char buff[2048];
+        in.read(reinterpret_cast<char*>(buff), 2048);
+        rhs.write(buff, in.gcount());
         while (!in.eof() && in.good()) {
-            in.read(buff, 2048);
-            rhs.update(buff, in.gcount());
+            in.read(reinterpret_cast<char*>(buff), 2048);
+            rhs.write(buff, in.gcount());
         }
         return in;
     }
@@ -135,20 +129,20 @@ public:
         if (finalized) {
             throw hash_exception("hash cannot be finalized more than once");
         }
-        std::unique_ptr<unsigned char[]> md {new unsigned char[SHA_DIGEST_LENGTH]};
-        SHA256_Final(md.get(), ctx.get());
+        std::unique_ptr<unsigned char[]> md {new unsigned char[CSHA256::OUTPUT_SIZE]};
+        csha256.Finalize(md.get());
         finalized = true;
         return HashObject(std::move(md));
     }
     HashBuilder& reset()
     {
-        SHA256_Init(ctx.get());
         finalized = false;
+        csha256.Reset();
         return *this;
     }
 protected:
     bool finalized {false};
-    std::unique_ptr<SHA256_CTX> ctx {new SHA256_CTX()};
+    CSHA256 csha256;
 private:
 };
 

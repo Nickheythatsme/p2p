@@ -30,15 +30,12 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-### Find openssl
-find_package(openssl REQUIRED)
-
 ### Add/Make tests
 add_executable(example_test example_test.cpp)
 target_link_libraries(example_test gtest_main)
 add_test(NAME example_test COMMAND example_test)
 
-add_executable(smoke_test hash_test.cpp)
-target_link_libraries(smoke_test gtest_main OpenSSL::SSL)
-add_test(NAME smoke_test COMMAND smoke_test)
+add_executable(hash_test hash_test.cpp ../src/crypto/sha256.cpp ../src/crypto/sha256.h ../src/crypto/endian.h ../src/crypto/byteswap.h ../src/crypto/common.h)
+target_link_libraries(hash_test gtest_main)
+add_test(NAME hash_test COMMAND hash_test)
 ### END Add/Make tests
