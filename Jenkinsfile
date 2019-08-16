@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Setup') {
       steps {
-        sh './configure'
+        cmakeBuild(buildDir: '.', buildType: 'Debug', installation: 'cmake3.15.2', cleanBuild: true)
       }
     }
     stage('Build') {
