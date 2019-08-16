@@ -11,6 +11,9 @@
 #include <exception>
 #include <cstring>
 
+// TODO remove stdio
+#include <cstdio>
+
 namespace p2p {
 
 class hash_exception: public std::exception
@@ -52,6 +55,10 @@ public:
     }
     friend std::ostream& operator<<(std::ostream& out, const HashObject& to_print)
     {
+        auto val = static_cast<unsigned char*>(to_print.hash_value.get());
+        uint32_t val_int = val;
+        printf("hash cast: %x\n", static_cast<uint32_t>(*val));
+
         auto previous_flags = out.flags();
         for (int i=0; i<CSHA256::OUTPUT_SIZE; ++i)
         {
@@ -93,6 +100,10 @@ public:
         hash_value = std::make_unique<unsigned char[]>(CSHA256::OUTPUT_SIZE);
         memcpy(hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);
         return *this;
+    }
+    int operator%(int val) const
+    {
+        return static_cast<uint32_t>(*hash_value.get()) % val;
     }
 protected:
     std::unique_ptr<unsigned char[]> hash_value {nullptr};

@@ -74,3 +74,13 @@ TEST(HashTest, TestBuilder)
         );
     }
 }
+
+TEST(HashTest, mod_op)
+{
+    HashBuilder hashBuilder;
+    hashBuilder.write(reinterpret_cast<const unsigned char*>("this is a test"), strlen("this is a test"));
+    auto hashObject = hashBuilder.finalize();
+    cout << "hash length: " << CSHA256::OUTPUT_SIZE << endl;
+    cout << "hash: " << hashObject << endl;
+    cout << hashObject % 100 << endl;
+}
