@@ -47,7 +47,7 @@ public:
     explicit HashObject(std::unique_ptr<unsigned char[]>&& hash_value):
         hash_value(nullptr)
     {
-        this->hash_value.reset((uint64_t*) hash_value.release());
+        this->hash_value.reset(reinterpret_cast<uint64_t*>(hash_value.release()));
         for (int i=0; i<HashObject::OUTPUT_SIZE; ++i)
         {
             auto be = this->hash_value.get()[i];
