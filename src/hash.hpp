@@ -6,6 +6,7 @@
 #define HASH_HPP
 
 #include "crypto/sha256.h"
+#include "crypto/common.h"
 #include <ostream>
 #include <memory>
 #include <exception>
@@ -55,14 +56,12 @@ public:
     }
     friend std::ostream& operator<<(std::ostream& out, const HashObject& to_print)
     {
-        auto val = static_cast<unsigned char*>(to_print.hash_value.get());
-        uint32_t val_int = val;
-        printf("hash cast: %x\n", static_cast<uint32_t>(*val));
-
         auto previous_flags = out.flags();
-        for (int i=0; i<CSHA256::OUTPUT_SIZE; ++i)
+        auto val = static_cast<unsigned char*>(to_print.hash_value.get());
+        for (int i=0; i<CSHA256::OUTPUT_SIZE / 8; i++)
         {
-            out << std::hex << static_cast<int>(to_print.hash_value[i]);
+            out << std::hex << ReadBE64(val);
+            val += sizeof(uint64_t);
         }
         out.flags(previous_flags);
         return out;

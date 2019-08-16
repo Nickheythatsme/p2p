@@ -18,11 +18,12 @@ using namespace p2p;
 
 std::stringstream generate_stream(size_t len)
 {
-    std::string to_fill {"this is a test string"};
+    char to_fill {' '};
     std::stringstream ss;
     for (int i=0; i<len; ++i)
     {
-        ss << to_fill;
+        ss << to_fill++;
+        to_fill %= '~';
     }
     return ss;
 }
@@ -34,10 +35,10 @@ TEST(HashTest, SmokeTest) {
     auto hashObject = hashBuilder.finalize();
     std::stringstream ss_out;
     ss_out << hashObject;
-    ASSERT_EQ(ss_out.str(), "1fa8c9f82382d114db6f406570faaaf6b77aa28281357ebc2c4756e9cd15");
+    ASSERT_EQ(ss_out.str(), "29a3ad1d1367654a736740712e3312f34c10938a99a37eee7a2bb61912761c7f");
 }
 
-TEST(HashTest, Equality)
+TEST(HashTest, EqualityOperators)
 {
     {
         HashBuilder hashBuilder;
@@ -51,6 +52,16 @@ TEST(HashTest, Equality)
         ASSERT_NE(hash_1, hash_2);
         ASSERT_LT(hash_1, hash_2);
     }
+}
+
+TEST(HashTest, ModOperator)
+{
+    HashBuilder hashBuilder;
+    hashBuilder.write(reinterpret_cast<const unsigned char*>("this is a test"), strlen("this is a test"));
+    auto hashObject = hashBuilder.finalize();
+    cout << "hash length: " << CSHA256::OUTPUT_SIZE << endl;
+    cout << "hash: " << hashObject << endl;
+    cout << hashObject % 100 << endl;
 }
 
 TEST(HashTest, TestBuilder)
@@ -75,12 +86,10 @@ TEST(HashTest, TestBuilder)
     }
 }
 
-TEST(HashTest, mod_op)
+TEST(HashTest, LoadTest)
 {
-    HashBuilder hashBuilder;
-    hashBuilder.write(reinterpret_cast<const unsigned char*>("this is a test"), strlen("this is a test"));
-    auto hashObject = hashBuilder.finalize();
-    cout << "hash length: " << CSHA256::OUTPUT_SIZE << endl;
-    cout << "hash: " << hashObject << endl;
-    cout << hashObject % 100 << endl;
+    auto stream = generate_stream(1000);
+    auto start = std::chrono::steady_clock::now();
+
+    auto end = std::chrono::steady_clock::now();
 }

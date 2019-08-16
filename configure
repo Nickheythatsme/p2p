@@ -13,11 +13,5 @@ else
 fi
 
 #### Make a _build dir to hold boost & p2p build files
-working_dir="$(pwd)/_build"
-if [ ! -d $working_dir ]; then
-    mkdir $working_dir
-fi
-
-#### Call CMake
-cd $working_dir && cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake -DCMAKE_BUILD_TYPE=Debug -B _debug -j $cpu_count .
 
