@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Setup') {
       steps {
-        cmakeBuild(buildDir: '.', buildType: 'Debug', installation: 'cmake3.15.2', cleanBuild: true)
+        cmakeBuild(buildDir: '.', buildType: 'Debug', installation: 'cmake-lts', cleanBuild: true)
       }
     }
     stage('Build') {
