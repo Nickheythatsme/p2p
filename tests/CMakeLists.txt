@@ -38,7 +38,7 @@ add_executable(example_test example_test.cpp)
 target_link_libraries(example_test gtest_main)
 add_test(NAME example_test COMMAND example_test)
 
-add_executable(smoke_test smoke_test.cpp)
+add_executable(smoke_test hash_test.cpp)
 target_link_libraries(smoke_test gtest_main OpenSSL::SSL)
 add_test(NAME smoke_test COMMAND smoke_test)
 ### END Add/Make tests

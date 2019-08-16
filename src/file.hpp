@@ -18,7 +18,6 @@ class File {
         ~File() = default;
     protected:
         std::string fname;
-        Hash256 hash256;
     private:
 };
 

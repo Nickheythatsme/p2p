@@ -18,7 +18,6 @@ if [ ! -d $working_dir ]; then
     mkdir $working_dir
 fi
 
-#### Call Cmake
-#cd $working_dir && cmake -DCPU_COUNT=$cpu_count ..
-cd $working_dir && cmake -DCMAKE_BUILD_TYPE=Debug -DCPU_COUNT=$cpu_count ..
+#### Call CMake
+cd $working_dir && cmake -DCMAKE_BUILD_TYPE=Debug ..
 
