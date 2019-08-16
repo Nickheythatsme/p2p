@@ -5,12 +5,16 @@
 #ifndef HASH_HPP
 #define HASH_HPP
 
-#include "crypto/sha256.h"
-#include "crypto/common.h"
 #include <ostream>
 #include <memory>
 #include <exception>
 #include <cstring>
+#include "crypto/sha256.h"
+
+#if !defined(HAVE_DECL_BE64TOH) || HAVE_DECL_BE64TOH == 0
+#include "crypto/endian.h"
+#define HAVE_DECL_BE64TOH 0
+#endif
 
 // TODO remove stdio
 #include <cstdio>
@@ -41,27 +45,30 @@ class HashObject
 {
 public:
     explicit HashObject(std::unique_ptr<unsigned char[]>&& hash_value):
-        hash_value(std::move(hash_value))
-    { }
+        hash_value(nullptr)
+    {
+        this->hash_value.reset((uint64_t*) hash_value.release());
+        for (int i=0; i<HashObject::OUTPUT_SIZE; ++i)
+        {
+            auto be = this->hash_value.get()[i];
+            this->hash_value.get()[i] = be64toh(be);
+        }
+    }
     HashObject(const HashObject &rhs)
     {
-        hash_value = std::make_unique<unsigned char[]>(CSHA256::OUTPUT_SIZE);
         memcpy(hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);
     }
-    // NOTE: this breaks rhs, any usage of it after this call will cause a seg fault
     HashObject(HashObject &&rhs) noexcept:
         hash_value(std::move(rhs.hash_value))
     {
-        rhs.hash_value.reset(nullptr);
+        rhs.hash_value.reset(new uint64_t[HashObject::OUTPUT_SIZE]);
     }
     friend std::ostream& operator<<(std::ostream& out, const HashObject& to_print)
     {
         auto previous_flags = out.flags();
-        auto val = static_cast<unsigned char*>(to_print.hash_value.get());
-        for (int i=0; i<CSHA256::OUTPUT_SIZE / 8; i++)
+        for (int i=0; i<HashObject::OUTPUT_SIZE; ++i)
         {
-            out << std::hex << ReadBE64(val);
-            val += sizeof(uint64_t);
+            out << std::hex << to_print.hash_value.get()[i];
         }
         out.flags(previous_flags);
         return out;
@@ -96,16 +103,21 @@ public:
     }
     HashObject& operator=(const HashObject& rhs)
     {
-        hash_value = std::make_unique<unsigned char[]>(CSHA256::OUTPUT_SIZE);
         memcpy(hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);
         return *this;
     }
     int operator%(int val) const
     {
-        return static_cast<uint32_t>(*hash_value.get()) % val;
+        int acc = 0;
+        acc += hash_value.get()[0] % val;
+        acc += hash_value.get()[1] % val;
+        acc += hash_value.get()[2] % val;
+        acc += hash_value.get()[3] % val;
+        return acc % val;
     }
+    static const size_t OUTPUT_SIZE = 4;
 protected:
-    std::unique_ptr<unsigned char[]> hash_value {nullptr};
+    std::unique_ptr<uint64_t[]> hash_value {new uint64_t[HashObject::OUTPUT_SIZE]};
 };
 
 class HashBuilder

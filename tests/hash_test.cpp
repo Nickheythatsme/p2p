@@ -59,9 +59,7 @@ TEST(HashTest, ModOperator)
     HashBuilder hashBuilder;
     hashBuilder.write(reinterpret_cast<const unsigned char*>("this is a test"), strlen("this is a test"));
     auto hashObject = hashBuilder.finalize();
-    cout << "hash length: " << CSHA256::OUTPUT_SIZE << endl;
-    cout << "hash: " << hashObject << endl;
-    cout << hashObject % 100 << endl;
+    ASSERT_EQ(hashObject % 100, 62);
 }
 
 TEST(HashTest, TestBuilder)
@@ -88,8 +86,16 @@ TEST(HashTest, TestBuilder)
 
 TEST(HashTest, LoadTest)
 {
-    auto stream = generate_stream(1000);
+    auto data_chunk = generate_stream(100000).str();
     auto start = std::chrono::steady_clock::now();
-
+    HashBuilder builder;
+    builder.write(
+        (const unsigned char*)data_chunk.c_str(), 
+        data_chunk.size()
+        );
+    auto hash = builder.finalize();
+    ASSERT_EQ(hash % 100, 49);
     auto end = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    cout << "Completed hash in " << elapsed.count() << " us" << endl;
 }
