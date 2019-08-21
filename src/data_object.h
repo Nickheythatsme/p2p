@@ -15,15 +15,15 @@ namespace p2p {
 class DataObject {
 public:
     DataObject() = default;
-    DataObject(const char* fname);
+    DataObject(HashObject hash, UUID uuid, std::string filepath);
     DataObject(const DataObject& data_object) = default;
     DataObject(DataObject&& data_object);
     ~DataObject() = default;
 protected:
-    std::string fname;
-private:
     HashObject hash;
     UUID uuid;
+    std::string filepath;
+private:
 };
 
 } // namespace p2p

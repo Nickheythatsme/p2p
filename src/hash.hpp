@@ -5,7 +5,7 @@
 #ifndef HASH_HPP
 #define HASH_HPP
 
-#include <ostream>
+#include <iostream>
 #include <memory>
 #include <exception>
 #include <cstring>
@@ -15,9 +15,6 @@
 #include "crypto/endian.h"
 #define HAVE_DECL_BE64TOH 0
 #endif
-
-// TODO remove stdio
-#include <cstdio>
 
 namespace p2p {
 
