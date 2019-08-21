@@ -6,9 +6,11 @@
 #include <chrono>
 #include <vector>
 #include <cstdlib>
+#include <string>
 #include <map>
 #include "gtest/gtest.h"
 #include "../src/hash_table.h"
+#include "../src/hash.hpp"
 
 using std::cout;
 using std::cerr;
@@ -121,4 +123,22 @@ TEST(HashTable, speed) {
         cout << "Completed std::map in " << stdMapMicroseconds << " us" << endl;
     }
     ASSERT_LT(hashTableMicroseconds, stdMapMicroseconds);
+}
+
+TEST(HashTable, usingHashObject) {
+    HashTable<HashObject, std::string> hashTable;
+    HashBuilder builder;
+
+    for (int i=0; i<10; ++i) {
+        builder.write((unsigned char*)&i, sizeof(int));
+        auto hashObject = builder.finalize();
+        builder.reset();
+        hashTable.put(hashObject, std::to_string(i));
+    }
+
+    int value = 0;
+    builder.write((unsigned char*)&value, sizeof(int));
+    auto hashObject = builder.finalize();
+    builder.reset();
+    ASSERT_NO_THROW(hashTable.get(hashObject));
 }
