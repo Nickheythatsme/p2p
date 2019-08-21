@@ -1,19 +1,19 @@
-cmake_minimum_required (VERSION 3.9)
+cmake_minimum_required(VERSION 3.9)
 
 ### Set up googletest
 configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-if(result)
+        RESULT_VARIABLE result
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download)
+if (result)
     message(FATAL_ERROR "CMake step for googletest failed: ${result}")
-endif()
+endif ()
 execute_process(COMMAND ${CMAKE_COMMAND} --build .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-if(result)
+        RESULT_VARIABLE result
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download)
+if (result)
     message(FATAL_ERROR "Build step for googletest failed: ${result}")
-endif()
+endif ()
 
 # Prevent overriding the parent project's compiler/linker
 # settings on Windows
@@ -22,8 +22,8 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 # Add googletest directly to our build. This defines
 # the gtest and gtest_main targets.
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
-                 ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-                 EXCLUDE_FROM_ALL)
+        ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
+        EXCLUDE_FROM_ALL)
 ### END Set up googletest
 
 ### Find packages
@@ -36,13 +36,13 @@ target_link_libraries(example_test gtest_main)
 add_test(NAME example_test COMMAND example_test)
 
 add_executable(hash_test
-    hash_test.cpp
-    ../src/crypto/sha256.cpp
-    ../src/crypto/sha256.h
-    ../src/crypto/endian.h
-    ../src/crypto/byteswap.h
-    ../src/crypto/common.h
-    )
+        hash_test.cpp
+        ../src/crypto/sha256.cpp
+        ../src/crypto/sha256.h
+        ../src/crypto/endian.h
+        ../src/crypto/byteswap.h
+        ../src/crypto/common.h
+        )
 target_link_libraries(hash_test gtest_main)
 add_test(NAME hash_test COMMAND hash_test)
 

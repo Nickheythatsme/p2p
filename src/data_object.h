@@ -13,17 +13,17 @@
 namespace p2p {
 
 class DataObject {
-public:
+  public:
     DataObject() = default;
     DataObject(HashObject hash, UUID uuid, std::string filepath);
-    DataObject(const DataObject& data_object) = default;
-    DataObject(DataObject&& data_object);
+    DataObject(const DataObject &data_object) = default;
+    DataObject(DataObject &&data_object);
     ~DataObject() = default;
-protected:
+  protected:
     HashObject hash;
     UUID uuid;
     std::string filepath;
-private:
+  private:
 };
 
 } // namespace p2p
