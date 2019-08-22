@@ -10,7 +10,8 @@ Entry<K, V>::Entry(K key, V value):
     value(std::move(value)) {}
 
 template<class K, class V>
-Entry<K,V>::Entry(Entry<K,V> &&rhs):
+Entry<K, V>::Entry(Entry<K, V> &&rhs) noexcept
+    :
     key(std::move(rhs.key)),
     value(std::move(rhs.value)),
     next(std::move(rhs.next))
@@ -36,13 +37,6 @@ HashTable<K, V>::HashTable(size_t len):
 }
 
 template<class K, class V>
-HashTable<K, V>::HashTable(const HashTable &rhs):
-    len(rhs.len)
-{
-
-}
-
-template<class K, class V>
 HashTable<K, V>::HashTable(HashTable &&rhs) noexcept :
     len(rhs.len),
     table(std::move(rhs.table))
@@ -53,15 +47,6 @@ HashTable<K, V>::HashTable(HashTable &&rhs) noexcept :
 
 template<class K, class V>
 HashTable<K, V> &HashTable<K, V>::put(K key, V value) {
-  auto index = key % this->len;
-  auto new_entry = std::make_unique<Entry<K, V>>(Entry<K, V>(std::move(key), std::move(value)));
-  new_entry->next = std::move(this->table[index]);
-  this->table[index] = std::move(new_entry);
-  return *this;
-}
-
-template<class K, class V>
-HashTable<K, V> &HashTable<K, V>::put_or_assign(K key, V value) {
   auto index = key % this->len;
   auto new_entry = std::make_unique<Entry<K, V>>(Entry<K, V>(std::move(key), std::move(value)));
   new_entry->next = std::move(this->table[index]);
@@ -93,16 +78,6 @@ const V &HashTable<K, V>::get(const K &key) const {
     current = &(*current)->next;
   }
   throw hash_table_exception("Key was not found in table");
-}
-
-template<class K, class V>
-V &HashTable<K, V>::operator[](const K &key) {
-  return this->get(key);
-}
-
-template<class K, class V>
-const V &HashTable<K, V>::operator[](const K &key) const {
-  return this->get(key);
 }
 
 template<class K, class V>

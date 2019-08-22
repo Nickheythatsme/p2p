@@ -27,7 +27,7 @@ class hash_table_exception : public std::exception {
 template<class K, class V>
 struct Entry {
   Entry(K key, V value);
-  Entry(Entry<K,V> &&rhs);
+    Entry(Entry<K, V> &&rhs) noexcept;
   Entry(const Entry<K,V> &rhs);
   K key;
   V value;
@@ -41,14 +41,11 @@ template<class K, class V>
 class HashTable {
   public:
     HashTable();
-    HashTable(size_t len);
+    explicit HashTable(size_t len);
     HashTable(HashTable<K,V>&& rhs) noexcept;
-    HashTable(const HashTable<K,V>& rhs);
+    HashTable(const HashTable<K, V> &rhs) = delete;
     ~HashTable() = default;
     HashTable<K, V> &put(K key, V value);
-    HashTable<K, V> &put_or_assign(K key, V value);
-    V &operator[](const K &key);
-    const V &operator[](const K &key) const;
     V &get(const K &key);
     const V &get(const K &key) const;
     bool contains(const K &key) const;
