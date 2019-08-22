@@ -17,9 +17,6 @@
 #undef  MSG_NOSIGNAL
 #define MSG_NOSIGNAL SO_NOSIGPIPE
 
-#undef  MSG_NOSIGNAL
-#define MSG_NOSIGNAL SO_NOSIGPIPE
-
 #else
 #endif
 #else // Windows machine
