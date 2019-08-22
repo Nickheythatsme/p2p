@@ -77,8 +77,6 @@ TEST(HashTable, getTest) {
   EXPECT_THROW(hashTable.get(2048), hash_table_exception);
 
   test_const_get(hashTable, values[0]);
-  // test operators
-  hashTable[values[0]];
 }
 
 TEST(HashTable, speed) {
