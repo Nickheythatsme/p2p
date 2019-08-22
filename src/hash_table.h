@@ -27,6 +27,8 @@ class hash_table_exception : public std::exception {
 template<class K, class V>
 struct Entry {
   Entry(K key, V value);
+  Entry(Entry<K,V> &&rhs);
+  Entry(const Entry<K,V> &rhs);
   K key;
   V value;
   std::unique_ptr<Entry<K, V>> next{nullptr};
@@ -40,7 +42,9 @@ class HashTable {
   public:
     HashTable();
     HashTable(size_t len);
-    ~HashTable();
+    HashTable(HashTable<K,V>&& rhs) noexcept;
+    HashTable(const HashTable<K,V>& rhs);
+    ~HashTable() = default;
     HashTable<K, V> &put(K key, V value);
     HashTable<K, V> &put_or_assign(K key, V value);
     V &operator[](const K &key);
@@ -50,7 +54,7 @@ class HashTable {
     bool contains(const K &key) const;
   protected:
     size_t len;
-    std::unique_ptr<EntryPtr<K, V>[]> table{nullptr};
+    std::unique_ptr<EntryPtr<K, V>[]> table;
   private:
 };
 

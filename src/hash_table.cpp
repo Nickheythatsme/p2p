@@ -10,6 +10,20 @@ Entry<K, V>::Entry(K key, V value):
     value(std::move(value)) {}
 
 template<class K, class V>
+Entry<K,V>::Entry(Entry<K,V> &&rhs):
+    key(std::move(rhs.key)),
+    value(std::move(rhs.value)),
+    next(std::move(rhs.next))
+{ }
+
+template<class K, class V>
+Entry<K,V>::Entry(const Entry<K,V> &rhs):
+    key(rhs.key),
+    value(rhs.value),
+    next(nullptr)
+{ }
+
+template<class K, class V>
 HashTable<K, V>::HashTable():
     len(HASH_TABLE_DEFAULT_SIZE),
     table(new EntryPtr<K, V>[HASH_TABLE_DEFAULT_SIZE]) {
@@ -22,7 +36,19 @@ HashTable<K, V>::HashTable(size_t len):
 }
 
 template<class K, class V>
-HashTable<K, V>::~HashTable() {
+HashTable<K, V>::HashTable(const HashTable &rhs):
+    len(rhs.len)
+{
+
+}
+
+template<class K, class V>
+HashTable<K, V>::HashTable(HashTable &&rhs) noexcept :
+    len(rhs.len),
+    table(std::move(rhs.table))
+{
+    rhs.len = 0;
+    rhs.table = nullptr;
 }
 
 template<class K, class V>
