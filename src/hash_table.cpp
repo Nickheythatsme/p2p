@@ -65,49 +65,73 @@ HashTable <K, V> &HashTable<K, V>::put (K key, V value)
 template<class K, class V>
 V &HashTable<K, V>::get (const K &key)
 {
-    auto index = key % this->len;
-    auto current = &table[index];
-    while (*current)
-        {
-            if (key == (*current)->key)
-                {
-                    return (*current)->value;
-                }
-            current = &(*current)->next;
-        }
-    throw hash_table_exception ("Key was not found in table");
+    auto res = _get(key);
+    if (res == nullptr) {
+        throw hash_table_exception ("Key was not found in table");
+    } else {
+        return (*res)->value;
+    }
 }
 
 template<class K, class V>
 const V &HashTable<K, V>::get (const K &key) const
 {
-    auto index = key % this->len;
-    auto current = &table[index];
-    while (*current)
-        {
-            if (key == (*current)->key)
-                {
-                    return (*current)->value;
-                }
-            current = &(*current)->next;
-        }
-    throw hash_table_exception ("Key was not found in table");
+    auto res = _get(key);
+    if (res == nullptr) {
+        throw hash_table_exception ("Key was not found in table");
+    } else {
+        return (*res)->value;
+    }
 }
 
 template<class K, class V>
 bool HashTable<K, V>::contains (const K &key) const
 {
+    return _get(key) != nullptr;
+}
+
+template<class K, class V>
+EntryPtr<K,V>* HashTable<K,V>::_get(const K &key)
+{
     auto index = key % this->len;
-    auto current = &table[index];
-    while (*current)
-        {
-            if (key == (*current)->key)
-                {
-                    return true;
-                }
-            current = &(*current)->next;
-        }
-    return false;
+    if (table[index] == nullptr) {
+        return nullptr;
+    }
+    return _get(table[index], key);
+}
+
+template<class K, class V>
+EntryPtr<K,V>* HashTable<K,V>::_get(EntryPtr<K, V>& current, const K &key)
+{
+    if (current->key == key) {
+        return &current;
+    } else if (!current->next.get()) {
+        return nullptr;
+    } else {
+        return _get(current->next, key);
+    }
+}
+
+template<class K, class V>
+const EntryPtr<K,V>* HashTable<K,V>::_get(const K &key) const
+{
+    auto index = key % this->len;
+    if (table[index] == nullptr) {
+        return nullptr;
+    }
+    return _get(table[index], key);
+}
+
+template<class K, class V>
+const EntryPtr<K,V>* HashTable<K,V>::_get(const EntryPtr<K, V>& current, const K &key) const
+{
+    if (current->key == key) {
+        return &current;
+    } else if (!current->next.get()) {
+        return nullptr;
+    } else {
+        return _get(current->next, key);
+    }
 }
 
 } // namespace p2p

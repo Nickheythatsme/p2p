@@ -58,6 +58,10 @@ class HashTable
         const V &get (const K &key) const;
         bool contains (const K &key) const;
     protected:
+        EntryPtr<K,V>* _get(const K &key);
+        EntryPtr<K,V>* _get(EntryPtr<K, V>& index, const K& key);
+        const EntryPtr<K,V>* _get(const K &key) const;
+        const EntryPtr<K,V>* _get(const EntryPtr<K, V>& index, const K& key) const;
         size_t len;
         std::unique_ptr<EntryPtr<K, V>[]> table;
     private:
