@@ -7,6 +7,7 @@
 #include <vector>
 #include <cstdlib>
 #include <string>
+#include <random>
 #include <map>
 #include "gtest/gtest.h"
 #include "../src/hash_table.h"
@@ -35,12 +36,9 @@ class DebugableHashTable : public HashTable<K, V> {
     DebugableHashTable(size_t len) : HashTable<K, V>(len) {}
     void print_table() const {
       for (int i = 0; i < HashTable<K, V>::len; ++i) {
-        auto current = &HashTable<K, V>::table[i];
-        while (*current) {
-          std::cout << (*current)->key << ":" << (*current)->value << " -> ";
-          current = &(*current)->next;
+        for (const auto& pair : HashTable<K,V>::table[i]) {
+
         }
-        std::cout << "NULL" << std::endl;
       }
     }
 
@@ -87,10 +85,16 @@ TEST(HashTable, speed) {
   // Time HashTable
   {
     HashTable<int, int> hashTable;
+    std::random_device rd;
+    std::mt19937 g(rd());
     auto start = std::chrono::steady_clock::now();
     for (auto &value : values) {
       hashTable.put(value, value);
     }
+
+    // Shuffle vector
+    std::shuffle(values.begin(), values.end(), g);
+
     for (auto &value : values) {
       hashTable.get(value);
     }
@@ -102,10 +106,15 @@ TEST(HashTable, speed) {
   // Time std::map
   {
     std::map<int, int> map;
+    std::random_device rd;
+    std::mt19937 g(rd());
     auto start = std::chrono::steady_clock::now();
     for (auto &value : values) {
       map[value] = value;
     }
+    // Shuffle vector
+    std::shuffle(values.begin(), values.end(), g);
+
     for (auto &value : values) {
       map.at(value);
     }
@@ -132,4 +141,29 @@ TEST(HashTable, usingHashObject) {
   auto hashObject = builder.finalize();
   builder.reset();
   ASSERT_NO_THROW(hashTable.get(hashObject));
+}
+
+TEST(HashTable, copy_test) {
+    class VerboseObject {
+        public:
+            explicit VerboseObject(int x): x(x) { cout << "specialized constructor: " << x << endl; }
+            VerboseObject(): x(-1) { cout << "constructor: " << x << endl; }
+            VerboseObject(const VerboseObject& rhs): x(rhs.x) { cout << "copy constructor: " << x << endl; }
+            VerboseObject(VerboseObject &&rhs) noexcept: x(rhs.x) { cout << "move constructor: " << x << endl; rhs.x = -1;}
+            ~VerboseObject() { cout << "destructor: " << x << endl; }
+            VerboseObject& operator=(VerboseObject&& rhs) noexcept { cout << "move assignment operator: " << rhs.x << endl; x = rhs.x; rhs.x = -1; return *this; }
+            VerboseObject& operator=(const VerboseObject& rhs) { cout << "assignment operator: " << rhs.x << endl; x = rhs.x; return *this; }
+        protected:
+            int x;
+    };
+    HashTable<int, VerboseObject> hash_table {2};
+    hash_table.put(1, VerboseObject(1));
+    /*
+    hash_table.put(2, VerboseObject(2));
+    hash_table.put(3, VerboseObject(3));
+    hash_table.put(4, VerboseObject(4));
+
+    hash_table.get(1);
+    */
+    hash_table.get(1) = VerboseObject(5);
 }
