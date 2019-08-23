@@ -6,40 +6,81 @@ namespace p2p
 {
 
 template<class K, class V>
-Entry<K, V>::Entry (K key, V value):
-    key (std::move (key)),
-    value (std::move (value))
+auto Entries<K,V>::begin() const
 {
+    return entries.begin();
 }
 
 template<class K, class V>
-Entry<K, V>::Entry (Entry <K, V> &&rhs) noexcept
-    :
-    key (std::move (rhs.key)),
-    value (std::move (rhs.value)),
-    next (std::move (rhs.next))
+auto Entries<K,V>::end() const
 {
+    return entries.begin();
+}
+
+
+template<class K, class V>
+V& Entries<K,V>::get(const K &key)
+{
+    for (auto& pair : entries) {
+        if (pair.first == key) {
+            return pair.second;
+        }
+    }
+    throw hash_table_exception("Entry not found");
 }
 
 template<class K, class V>
-Entry<K, V>::Entry (const Entry <K, V> &rhs):
-    key (rhs.key),
-    value (rhs.value),
-    next (nullptr)
+const V& Entries<K,V>::get(const K &key) const
 {
+    for (const auto& pair : entries) {
+        if (pair.first == key) {
+            return pair.second;
+        }
+    }
+    throw hash_table_exception("Entry not found");
+}
+template<class K, class V>
+bool Entries<K,V>::contains(const K &key) const
+{
+    for (auto& pair : entries) {
+        if (pair.first == key) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template<class K, class V>
+Entries<K,V>& Entries<K,V>::put(K key, V value)
+{
+    entries.emplace_back(
+        std::pair<K,V>(std::move(key), std::move(value))
+        );
+    return *this;
+}
+
+template<class K, class V>
+Entries<K,V>& Entries<K,V>::remove(const K& key)
+{
+    for (auto& pair : entries) {
+        if (pair.first == key) {
+            entries.erase(pair);
+        }
+    }
+    return *this;
 }
 
 template<class K, class V>
 HashTable<K, V>::HashTable ():
-    len (HASH_TABLE_DEFAULT_SIZE),
-    table (new EntryPtr<K, V>[HASH_TABLE_DEFAULT_SIZE])
+    len(HASH_TABLE_DEFAULT_SIZE),
+    table (new Entries<K, V>[len])
 {
 }
 
 template<class K, class V>
 HashTable<K, V>::HashTable (size_t len):
-    len (len),
-    table (new EntryPtr<K, V>[len])
+    len(len),
+    table (new Entries<K, V>[len])
 {
 }
 
@@ -56,82 +97,36 @@ template<class K, class V>
 HashTable <K, V> &HashTable<K, V>::put (K key, V value)
 {
     auto index = key % this->len;
-    auto new_entry = std::make_unique<Entry<K, V>> (Entry<K, V> (std::move (key), std::move (value)));
-    new_entry->next = std::move (this->table[index]);
-    this->table[index] = std::move (new_entry);
+    this->table[index].put(std::move(key), std::move(value));
     return *this;
 }
 
 template<class K, class V>
 V &HashTable<K, V>::get (const K &key)
 {
-    auto res = _get(key);
-    if (res == nullptr) {
-        throw hash_table_exception ("Key was not found in table");
-    } else {
-        return (*res)->value;
-    }
+    auto index = key % this->len;
+    return table[index].get(key);
 }
 
 template<class K, class V>
 const V &HashTable<K, V>::get (const K &key) const
 {
-    auto res = _get(key);
-    if (res == nullptr) {
-        throw hash_table_exception ("Key was not found in table");
-    } else {
-        return (*res)->value;
-    }
+    auto index = key % this->len;
+    return table[index].get(key);
 }
 
 template<class K, class V>
 bool HashTable<K, V>::contains (const K &key) const
 {
-    return _get(key) != nullptr;
+    auto index = key % this->len;
+    return table[index].contains(key);
 }
 
 template<class K, class V>
-EntryPtr<K,V>* HashTable<K,V>::_get(const K &key)
+HashTable<K,V>& HashTable<K, V>::remove (const K &key)
 {
     auto index = key % this->len;
-    if (table[index] == nullptr) {
-        return nullptr;
-    }
-    return _get(table[index], key);
-}
-
-template<class K, class V>
-EntryPtr<K,V>* HashTable<K,V>::_get(EntryPtr<K, V>& current, const K &key)
-{
-    if (current->key == key) {
-        return &current;
-    } else if (!current->next.get()) {
-        return nullptr;
-    } else {
-        return _get(current->next, key);
-    }
-}
-
-template<class K, class V>
-const EntryPtr<K,V>* HashTable<K,V>::_get(const K &key) const
-{
-    auto index = key % this->len;
-    if (table[index] == nullptr) {
-        return nullptr;
-    }
-    return _get(table[index], key);
-}
-
-template<class K, class V>
-const EntryPtr<K,V>* HashTable<K,V>::_get(const EntryPtr<K, V>& current, const K &key) const
-{
-    if (current->key == key) {
-        return &current;
-    } else if (!current->next.get()) {
-        return nullptr;
-    } else {
-        return _get(current->next, key);
-    }
+    return table[index].remove(key);
 }
 
 } // namespace p2p

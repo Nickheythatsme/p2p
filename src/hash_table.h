@@ -4,6 +4,8 @@
 
 #include "hash.hpp"
 #include <memory>
+#include <vector>
+#include <iterator>
 #define HASH_TABLE_DEFAULT_SIZE 2048
 
 namespace p2p
@@ -30,19 +32,21 @@ class hash_table_exception : public std::exception
         const char *what_arg;
 };
 
-template<class K, class V>
-struct Entry
-{
-    Entry (K key, V value);
-    Entry (Entry<K, V> &&rhs) noexcept;
-    Entry (const Entry<K, V> &rhs);
-    K key;
-    V value;
-    std::unique_ptr<Entry<K, V>> next{nullptr};
-};
 
 template<class K, class V>
-using EntryPtr = std::unique_ptr<Entry<K, V>>;
+class Entries
+{
+    public:
+        V& get(const K &key);
+        const V& get(const K &key) const;
+        bool contains(const K &key) const;
+        Entries<K,V>& put(K key, V value);
+        Entries<K,V>& remove(const K& key);
+        auto begin() const;
+        auto end() const;
+    private:
+        std::vector<std::pair<K,V>> entries;
+};
 
 template<class K, class V>
 class HashTable
@@ -57,13 +61,10 @@ class HashTable
         V &get (const K &key);
         const V &get (const K &key) const;
         bool contains (const K &key) const;
+        HashTable<K,V>& remove (const K &key);
     protected:
-        EntryPtr<K,V>* _get(const K &key);
-        EntryPtr<K,V>* _get(EntryPtr<K, V>& index, const K& key);
-        const EntryPtr<K,V>* _get(const K &key) const;
-        const EntryPtr<K,V>* _get(const EntryPtr<K, V>& index, const K& key) const;
         size_t len;
-        std::unique_ptr<EntryPtr<K, V>[]> table;
+        std::unique_ptr<Entries<K,V>[]> table;
     private:
 };
 
