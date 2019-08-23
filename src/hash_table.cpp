@@ -54,7 +54,7 @@ template<class K, class V>
 Entries<K,V>& Entries<K,V>::put(K key, V value)
 {
     entries.emplace_back(
-        std::pair<K,V>(std::move(key), std::move(value))
+        std::move(key), std::move(value)
         );
     return *this;
 }
@@ -62,9 +62,10 @@ Entries<K,V>& Entries<K,V>::put(K key, V value)
 template<class K, class V>
 Entries<K,V>& Entries<K,V>::remove(const K& key)
 {
-    for (auto& pair : entries) {
-        if (pair.first == key) {
-            entries.erase(pair);
+    for (auto current = entries.begin(); current < entries.end(); ++current) {
+        if ((*current).first == key) {
+            entries.erase(current);
+            return *this;
         }
     }
     return *this;
@@ -126,7 +127,8 @@ template<class K, class V>
 HashTable<K,V>& HashTable<K, V>::remove (const K &key)
 {
     auto index = key % this->len;
-    return table[index].remove(key);
+    table[index].remove(key);
+    return *this;
 }
 
 } // namespace p2p

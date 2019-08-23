@@ -163,7 +163,12 @@ TEST(HashTable, copy_test) {
     hash_table.put(3, VerboseObject(3));
     hash_table.put(4, VerboseObject(4));
 
-    hash_table.get(1);
-    */
     hash_table.get(1) = VerboseObject(5);
+    */
+    hash_table.get(1);
+    hash_table.remove(1);
+}
+
+TEST(HashTable, MemoryTest) {
+    srand(0);
 }
