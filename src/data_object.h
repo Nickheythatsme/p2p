@@ -10,20 +10,22 @@
 #include "hash.hpp"
 #include "uuid.h"
 
-namespace p2p {
+namespace p2p
+{
 
-class DataObject {
-  public:
-    DataObject() = default;
-    DataObject(HashObject hash, UUID uuid, std::string filepath);
-    DataObject(const DataObject &data_object) = default;
-    DataObject(DataObject &&data_object);
-    ~DataObject() = default;
-  protected:
-    HashObject hash;
-    UUID uuid;
-    std::string filepath;
-  private:
+class DataObject
+{
+    public:
+        DataObject () = default;
+        DataObject (HashObject hash, UUID uuid, std::string filepath);
+        DataObject (const DataObject &data_object) = default;
+        DataObject (DataObject &&data_object);
+        ~DataObject () = default;
+    protected:
+        HashObject hash;
+        UUID uuid;
+        std::string filepath;
+    private:
 };
 
 } // namespace p2p

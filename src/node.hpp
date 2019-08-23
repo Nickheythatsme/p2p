@@ -6,15 +6,19 @@
 #include <string>
 #include <memory>
 
-namespace p2p {
+namespace p2p
+{
 
-class File {
-  public:
-    File() = default;
-    File(const File &rhs) :
-        uuid(rhs.uuid) {}
-  protected:
-  private:
+class File
+{
+    public:
+        File () = default;
+        File (const File &rhs) :
+            uuid (rhs.uuid)
+        {
+        }
+    protected:
+    private:
 };
 
 } // namespace p2p

@@ -46,7 +46,7 @@ add_executable(hash_test
 target_link_libraries(hash_test gtest_main)
 add_test(NAME hash_test COMMAND hash_test)
 
-add_executable(uuid_test uuid_test.cpp ../src/uuid.cpp)
+add_executable(uuid_test uuid_test.cpp ../src/uuid.cpp ../src/file_table.cpp ../src/file_table.h)
 target_link_libraries(uuid_test gtest_main)
 add_test(NAME uuid_test COMMAND uuid_test)
 
@@ -60,4 +60,16 @@ add_executable(hash_table_test
         )
 target_link_libraries(hash_table_test gtest_main)
 add_test(NAME hash_table_test COMMAND hash_table_test)
+
+add_executable(file_table_test
+        file_table_test.cpp
+        ../src/file_table.cpp
+        ../src/crypto/sha256.cpp
+        ../src/crypto/sha256.h
+        ../src/crypto/endian.h
+        ../src/crypto/byteswap.h
+        ../src/crypto/common.h
+        )
+target_link_libraries(file_table_test gtest_main)
+add_test(NAME file_table_test COMMAND file_table_test)
 ### END Add/Make tests
