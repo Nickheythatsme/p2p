@@ -40,7 +40,7 @@ class Entries
         V& get(const K &key);
         const V& get(const K &key) const;
         bool contains(const K &key) const;
-        Entries<K,V>& put(K key, V value);
+        Entries<K,V>& put(K&& key, V&& value);
         Entries<K,V>& remove(const K& key);
         auto begin() const;
         auto end() const;
@@ -58,6 +58,8 @@ class HashTable
         HashTable (const HashTable<K, V> &rhs) = delete;
         ~HashTable () = default;
         HashTable<K, V> &put (K key, V value);
+        const V &operator[](const K &key) const;
+        V &operator[](const K &key);
         V &get (const K &key);
         const V &get (const K &key) const;
         bool contains (const K &key) const;

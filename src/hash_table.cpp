@@ -51,11 +51,11 @@ bool Entries<K,V>::contains(const K &key) const
 }
 
 template<class K, class V>
-Entries<K,V>& Entries<K,V>::put(K key, V value)
+Entries<K,V>& Entries<K,V>::put(K&& key, V&& value)
 {
     entries.emplace_back(
         std::move(key), std::move(value)
-        );
+    );
     return *this;
 }
 
@@ -115,6 +115,19 @@ const V &HashTable<K, V>::get (const K &key) const
     auto index = key % this->len;
     return table[index].get(key);
 }
+
+template<class K, class V>
+const V &HashTable<K,V>::operator[](const K &key) const
+{
+    return get(key);
+}
+
+template<class K, class V>
+V &HashTable<K,V>::operator[](const K &key)
+{
+    return get(key);
+}
+
 
 template<class K, class V>
 bool HashTable<K, V>::contains (const K &key) const
