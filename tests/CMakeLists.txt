@@ -46,16 +46,15 @@ add_executable(uuid_test uuid_test.cpp)
 target_link_libraries(uuid_test gtest_main p2putil)
 add_test(NAME uuid_test COMMAND uuid_test)
 
-add_executable(hash_table_test
-        hash_table_test.cpp
-        )
+add_executable(hash_table_test hash_table_test.cpp)
 target_link_libraries(hash_table_test gtest_main p2pcrypto)
 add_test(NAME hash_table_test COMMAND hash_table_test)
 
-add_executable(file_table_test
-        file_table_test.cpp
-        ../src/file_table.cpp
-        )
-target_link_libraries(file_table_test gtest_main p2pcrypto)
-add_test(NAME file_table_test COMMAND file_table_test)
+add_executable(record_table_test record_table_test.cpp)
+target_link_libraries(record_table_test gtest_main p2pmain p2putil)
+add_test(NAME record_table_test COMMAND record_table_test)
+
+add_executable(record_test record_test.cpp)
+target_link_libraries(record_test gtest_main p2pmain p2putil)
+add_test(NAME record_test COMMAND record_test)
 ### END Add/Make tests
