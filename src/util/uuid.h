@@ -2,6 +2,8 @@
 #define P2P_UUID_H
 
 #include <ostream>
+#include <memory>
+#include <cstring>
 #include <random>
 #include <string>
 #include <exception>

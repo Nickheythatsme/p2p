@@ -14,8 +14,8 @@
 #include "../crypto/sha256.h"
 
 #if !defined(HAVE_DECL_BE64TOH) || HAVE_DECL_BE64TOH == 0
-#include "../crypto/endian.h"
-#define HAVE_DECL_BE64TOH 0
+    #include "../crypto/endian.h"
+    #define HAVE_DECL_BE64TOH 0
 #endif
 
 namespace p2p {
