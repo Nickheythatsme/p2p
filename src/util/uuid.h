@@ -16,8 +16,8 @@ namespace util
 class UUID
 {
     public:
-        UUID(const char *suuid);
-        UUID(UUID &&rhs) = default;
+        explicit UUID(const char *suuid);
+        UUID(UUID &&rhs) noexcept = default;
         UUID(const UUID &rhs) = default;
 
         static UUID init_random();
