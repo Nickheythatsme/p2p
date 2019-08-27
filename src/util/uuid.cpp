@@ -33,7 +33,7 @@ UUID::UUID(const UUID &rhs):
 UUID UUID::init_random()
 {
     auto now = std::chrono::steady_clock::now();
-    const std::chrono::duration since_epoch = now.time_since_epoch();
+    auto since_epoch = now.time_since_epoch();
     auto now_cast = std::chrono::duration_cast<std::chrono::milliseconds>(since_epoch).count();
     std::seed_seq seed {now_cast};
     std::mt19937_64 gen (seed);
