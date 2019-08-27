@@ -7,14 +7,14 @@
 #include <thread>
 #include <chrono>
 #include "gtest/gtest.h"
-#include "../src/hash.hpp"
+#include "../src/util/hash.hpp"
 
 using std::cout;
 using std::cerr;
 using std::endl;
 using std::ifstream;
 
-using namespace p2p;
+using namespace p2p::util;
 
 std::stringstream generate_stream(size_t len) {
   char to_fill{' '};

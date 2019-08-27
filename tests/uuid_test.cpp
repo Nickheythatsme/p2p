@@ -1,9 +1,9 @@
-#include "../src/uuid.h"
+#include "../src/util/uuid.h"
 #include "gtest/gtest.h"
 #include <iostream>
 #include <vector>
 
-using namespace p2p;
+using namespace p2p::util;
 using std::cout;
 using std::endl;
 
@@ -13,7 +13,7 @@ TEST(UUID, smoke) {
 }
 
 TEST(UUID, assureRandomness) {
-  std::vector<UUID> uuids;
+  std::vector<UUID> uuids{};
   for (int i = 0; i < 10000; ++i) {
     auto new_uuid = UUID::init_random();
     for (const auto &uuid : uuids) {

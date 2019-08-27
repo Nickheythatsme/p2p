@@ -4,20 +4,25 @@
 
 #include "file_table.h"
 
-FileTable::FileTable ()
+namespace p2p
+{
+
+FileTable::FileTable()
 {
 
 }
 
-FileTable::FileTable (const FileTable &rhs)
+FileTable::FileTable(const FileTable &rhs)
 {
 
 }
-FileTable::FileTable (FileTable &&rhs)
+FileTable::FileTable(FileTable &&rhs)
 {
 
 }
-FileTable::~FileTable ()
+FileTable::~FileTable()
 {
 
 }
+
+} // namespace p2p

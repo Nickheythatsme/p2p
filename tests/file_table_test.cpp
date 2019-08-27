@@ -9,9 +9,10 @@
 #include <string>
 #include <map>
 #include "gtest/gtest.h"
-#include "../src/file_table.h"
-#include "../src/hash_table.h"
-#include "../src/hash.hpp"
+#include "file_table.h"
+#include "util/hash.hpp"
+
+using namespace p2p;
 
 TEST(FileTable, smoke) {
     FileTable filetable;

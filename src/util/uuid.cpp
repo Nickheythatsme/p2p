@@ -11,6 +11,7 @@
 
 namespace p2p
 {
+namespace util {
 
 UUID UUID::init_random ()
 {
@@ -241,5 +242,6 @@ bool UUID::operator== (const char *str) const
     return this->to_string () == str;
 }
 
+} // namespace util
 } // namespace p2p
 

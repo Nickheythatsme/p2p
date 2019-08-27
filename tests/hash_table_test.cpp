@@ -11,14 +11,14 @@
 #include <map>
 #include "gtest/gtest.h"
 #include "test_helper.h"
-#include "../src/hash_table.h"
-#include "../src/hash.hpp"
+#include "../src/util/hash_table.h"
+#include "../src/util/hash.hpp"
 
 using std::cout;
 using std::cerr;
 using std::endl;
 
-using namespace p2p;
+using namespace p2p::util;
 
 template<class T>
 std::vector<T> generate_random_numbers(size_t len, T limit)
