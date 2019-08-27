@@ -8,6 +8,12 @@
 #include <string>
 #include <exception>
 
+#if !defined(HAVE_DECL_BE64TOH) || HAVE_DECL_BE64TOH == 0
+    #include "../crypto/endian.h"
+    #undef HAVE_DECL_BE64TOH
+    #define HAVE_DECL_BE64TOH 0
+#endif
+
 #define UUID_NBYTES 16
 
 namespace p2p::util {

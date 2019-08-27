@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 using namespace p2p::util;
 using std::cout;
@@ -39,7 +40,21 @@ TEST(UUID, parse)
     auto u_string = u.to_string();
     cout << "test uuid:   " << test_uuid << endl
          << "parsed uuid: " << u << endl;
-    ASSERT_TRUE(u_string == "4c0272e2-5901-43b9-be4b-73b219abaf2f");
+    ASSERT_EQ(u_string, "4c0272e2-5901-43b9-be4b-73b219abaf2f");
+}
+
+TEST(UUID, speedParse)
+{
+    std::string test_uuid = "4c0272e2-5901-43b9-be4b-73b219abaf2f";
+    auto start = std::chrono::steady_clock::now();
+    for (int i=0; i<10000; ++i)
+    {
+        auto u = UUID::parse(test_uuid.c_str());
+        auto u_string = u.to_string();
+    }
+    auto end = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    cout << "Completed 10,000 uuid_parse in " << elapsed.count() << " us" << endl;
 }
 
 TEST(UUID, parseShouldThrowException)

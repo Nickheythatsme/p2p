@@ -10,7 +10,6 @@
 #include "uuid.h"
 #include <chrono>
 #include <cstdio>
-#include <iostream>
 #include <iomanip>
 #include <sstream>
 
@@ -76,8 +75,16 @@ UUID UUID::parse (const char *suuid)
     {
         throw std::invalid_argument ("Leading 4 bits of 7th byte did not equal 0100'B");
     }
+    for (int i = 0; i < 36; ++i)
+    {
+        if (!isxdigit (static_cast<int>(suuid[i])) && suuid[i] != '-')
+        {
+            throw std::invalid_argument("UUID had unexpected non-hex value");
+        }
+    }
 
-    auto suuid_clean = new char[32];
+    /*
+    char suuid_clean[32];
     memcpy(suuid_clean, suuid, 8);
     memcpy(&suuid_clean[8],  &suuid[9], 4);
     memcpy(&suuid_clean[12], &suuid[14], 4);
@@ -87,39 +94,42 @@ UUID UUID::parse (const char *suuid)
     // Check if the numbers are hex
     for (int i = 0; i < UUID_NBYTES; ++i)
     {
-        if (!isxdigit (suuid_clean[i]))
+        if (!isxdigit (static_cast<int>(suuid_clean[i])))
         {
             throw std::invalid_argument("UUID had unexpected non-hex value");
         }
     }
+    */
 
     auto uuid = new uchar[UUID_NBYTES];
     char* current;
     unsigned long p1 = 0x0;
     p1 = strtoul(suuid, &current, 16);
-    p1 <<= 2ul;
+    p1 = (p1 << 16);
     ++current;
     p1 += strtoul(current, &current, 16);
-    p1 <<= 2ul;
+    p1 = (p1 << 16);
     ++current;
     p1 += strtoul(current, &current, 16);
     ++current;
-    std::cout << std::hex << "p1: " << p1 << std::endl;
 
     unsigned long p2 = 0x0;
     p2 = strtoul(current, &current, 16);
-    p2 <<= 6ul;
+    p2 = (p2 << 48);
     ++current;
     p2 += strtoul(current, &current, 16);
-    std::cout << std::hex << "p2: " << p2 << std::endl;
 
+    p1 = be64toh(p1);
+    memcpy(uuid, reinterpret_cast<const void*>(&p1), sizeof(p1));
+    p2 = be64toh(p2);
+    memcpy(&uuid[8], reinterpret_cast<const void*>(&p2), sizeof(p2));
 
-    auto val = (uuid[8] ^ 0x80u);
+    /*
     if ((uuid[8] ^ 0x80u) != 0)
     {
-        // throw std::invalid_argument ("Leading 2 bits of 9th byte did not equal 10'B");
-        std::cout << "Leading 2 bits of 9th byte did not equal 10'B" << std::endl;
+        throw std::invalid_argument ("Leading 2 bits of 9th byte did not equal 10'B");
     }
+    */
 
     return UUID(uuid);
 }
