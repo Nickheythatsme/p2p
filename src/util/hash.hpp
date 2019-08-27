@@ -1,3 +1,5 @@
+#include <memory>
+
 //
 // Created by Nick Grout on 2019-08-13.
 //
@@ -58,9 +60,9 @@ class Hash
             memcpy(hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);
         }
         Hash(Hash &&rhs) noexcept:
-        hash_value(std::move(rhs.hash_value))
+            hash_value(std::move(rhs.hash_value))
         {
-            rhs.hash_value.reset(new uint64_t[Hash::OUTPUT_SIZE]);
+            rhs.hash_value = std::make_unique<uint64_t[]>(Hash::OUTPUT_SIZE);
         }
         friend std::ostream &operator<<(std::ostream &out, const Hash &to_print)
         {
@@ -71,6 +73,7 @@ class Hash
             out.flags(previous_flags);
             return out;
         }
+        // Returns the memcmp of the two values, 0 means equal
         int compare(const Hash &rhs) const
         {
             return memcmp(this->hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);

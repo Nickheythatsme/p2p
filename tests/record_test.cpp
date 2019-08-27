@@ -13,5 +13,6 @@ using std::endl;
 using namespace p2p;
 
 TEST(Record, smoke) {
-    LocalRecord local_record;
+    auto local = LocalRecord::CreateLocalRecord("Makefile");
+    local.retrieve(cout);
 }
