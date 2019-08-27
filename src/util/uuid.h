@@ -1,45 +1,46 @@
 #ifndef P2P_UUID_H
 #define P2P_UUID_H
 
-#include <cstdio>
 #include <ostream>
 #include <random>
 #include <string>
 #include <exception>
 
-namespace p2p
-{
-namespace util
-{
+#define UUID_NBYTES 16
+
+namespace p2p::util {
+
+using uchar = unsigned char;
 
 // 128 bit number
 class UUID
 {
     public:
-        explicit UUID(const char *suuid);
+        UUID(std::unique_ptr<uchar[]> &&data);
         UUID(UUID &&rhs) noexcept = default;
-        UUID(const UUID &rhs) = default;
+        UUID(const UUID &rhs);
 
+        // Initialize the UUID
         static UUID init_random();
+        static UUID init_random(std::mt19937_64& generator);
+
+        // Parse the UUID from a human readable string and back again
         static UUID parse(const char *suuid);
         std::string to_string() const;
         friend std::ostream &operator<<(std::ostream &out, const UUID &u);
 
         // Assignment
-        UUID &operator=(const char *str);
         UUID &operator=(const UUID &uuid);
 
         // Equality
         bool operator==(const UUID &rhs) const;
-        bool operator==(const char *str) const;
     protected:
-        unsigned long _1;
-        unsigned long _2;
     private:
-        UUID() = default;
+        UUID();
+        explicit UUID(unsigned char* data);
+        std::unique_ptr<uchar[]> data {nullptr};
 };
 
-} // namespace util
-} // namespace p2p
+} // namespace p2p::util
 
 #endif // P2P_UUID_H
