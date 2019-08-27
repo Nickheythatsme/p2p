@@ -93,21 +93,21 @@ TEST(HashTable, speed)
     auto values = generate_random_numbers<int>(2048, 2048);
     size_t hashTableMicroseconds{0};
     size_t stdMapMicroseconds{0};
+    std::string str {"seed"};
+    std::seed_seq seed (str.begin(),str.end());
+    std::mt19937 g(seed);
+    // Shuffle vector
+    std::shuffle(values.begin(), values.end(), g);
 
     // Time HashTable
     {
         HashTable<int, int> hashTable;
-        std::random_device rd;
-        std::mt19937 g(rd());
         auto start = std::chrono::steady_clock::now();
-        for(auto &value : values) {
+        for(const auto &value : values) {
             hashTable.put(value, value);
         }
 
-        // Shuffle vector
-        std::shuffle(values.begin(), values.end(), g);
-
-        for(auto &value : values) {
+        for(const auto &value : values) {
             hashTable.get(value);
         }
         auto end = std::chrono::steady_clock::now();
@@ -118,16 +118,12 @@ TEST(HashTable, speed)
     // Time std::map
     {
         std::map<int, int> map;
-        std::random_device rd;
-        std::mt19937 g(rd());
         auto start = std::chrono::steady_clock::now();
-        for(auto &value : values) {
+        for(const auto &value : values) {
             map[value] = value;
         }
-        // Shuffle vector
-        std::shuffle(values.begin(), values.end(), g);
 
-        for(auto &value : values) {
+        for(const auto &value : values) {
             map.at(value);
         }
         auto end = std::chrono::steady_clock::now();
