@@ -20,8 +20,7 @@
 #endif
 
 namespace p2p {
-namespace util
-{
+namespace util {
 
 class hash_exception : public std::exception
 {

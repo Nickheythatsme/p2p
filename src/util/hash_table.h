@@ -7,7 +7,8 @@
 #include <iterator>
 #define HASH_TABLE_DEFAULT_SIZE 2048
 
-namespace p2p::util {
+namespace p2p {
+namespace util {
 
 class hash_table_exception : public std::exception
 {
@@ -68,7 +69,8 @@ class HashTable
     private:
 };
 
-} // namespace p2p::util
+} // namespace util
+} // namespace p2p
 
 #include "hash_table.cpp"
 #endif // HASH_TABLE_H_

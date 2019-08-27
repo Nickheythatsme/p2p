@@ -16,7 +16,8 @@
 
 #define UUID_NBYTES 16
 
-namespace p2p::util {
+namespace p2p {
+namespace util {
 
 using uchar = unsigned char;
 
@@ -49,6 +50,7 @@ class UUID
         std::unique_ptr<uchar[]> data {nullptr};
 };
 
-} // namespace p2p::util
+} // namespace util
+} // namespace p2p
 
 #endif // P2P_UUID_H

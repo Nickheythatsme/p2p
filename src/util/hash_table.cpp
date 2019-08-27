@@ -1,6 +1,7 @@
 #include "hash_table.h"
 
-namespace p2p::util {
+namespace p2p {
+namespace util {
 
 template<class K, class V>
 auto Entries<K, V>::begin() const
@@ -139,4 +140,5 @@ HashTable <K, V> &HashTable<K, V>::remove(const K &key)
     return *this;
 }
 
-} // namespace p2p::util
+} // namespace util
+} // namespace p2p

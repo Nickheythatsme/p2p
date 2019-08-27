@@ -13,7 +13,8 @@
 #include <iomanip>
 #include <sstream>
 
-namespace p2p::util {
+namespace p2p {
+namespace util {
 
 UUID::UUID():
     data(new uchar[UUID_NBYTES])
@@ -65,59 +66,39 @@ UUID::UUID(std::unique_ptr<uchar[]> &&data):
 
 UUID UUID::parse (const char *suuid)
 {
-    // XXXXXXXX-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    // xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     if (suuid[8] != '-' || suuid[13] != '-' || suuid[18] != '-' || suuid[23] != '-')
     {
         throw std::invalid_argument ("Invalid uuid format: missing or misplaced '-'");
     }
-
     if (suuid[14] != '4')
     {
         throw std::invalid_argument ("Leading 4 bits of 7th byte did not equal 0100'B");
     }
-    for (int i = 0; i < 36; ++i)
-    {
-        if (!isxdigit (static_cast<int>(suuid[i])) && suuid[i] != '-')
-        {
-            throw std::invalid_argument("UUID had unexpected non-hex value");
-        }
-    }
 
-    /*
-    char suuid_clean[32];
-    memcpy(suuid_clean, suuid, 8);
-    memcpy(&suuid_clean[8],  &suuid[9], 4);
-    memcpy(&suuid_clean[12], &suuid[14], 4);
-    memcpy(&suuid_clean[16], &suuid[19], 4);
-    memcpy(&suuid_clean[20], &suuid[24], 12);
+    char suuid_p1[17];
+    char suuid_p2[17];
+    memcpy(suuid_p1, suuid, 8);
+    memcpy(&suuid_p1[8],  &suuid[9], 4);
+    memcpy(&suuid_p1[12], &suuid[14], 4);
+    memcpy(suuid_p2, &suuid[19], 4);
+    memcpy(&suuid_p2[4], &suuid[24], 12);
+    suuid_p1[16] = '\0';
+    suuid_p2[16] = '\0';
 
     // Check if the numbers are hex
-    for (int i = 0; i < UUID_NBYTES; ++i)
+    for (int i = 0; i < 16; ++i)
     {
-        if (!isxdigit (static_cast<int>(suuid_clean[i])))
+        if (!isxdigit (static_cast<int>(suuid_p1[i])) &&
+            !isxdigit (static_cast<int>(suuid_p2[i])))
         {
             throw std::invalid_argument("UUID had unexpected non-hex value");
         }
     }
-    */
 
     auto uuid = new uchar[UUID_NBYTES];
-    char* current;
-    unsigned long p1 = 0x0;
-    p1 = strtoul(suuid, &current, 16);
-    p1 = (p1 << 16);
-    ++current;
-    p1 += strtoul(current, &current, 16);
-    p1 = (p1 << 16);
-    ++current;
-    p1 += strtoul(current, &current, 16);
-    ++current;
-
-    unsigned long p2 = 0x0;
-    p2 = strtoul(current, &current, 16);
-    p2 = (p2 << 48);
-    ++current;
-    p2 += strtoul(current, &current, 16);
+    unsigned long p1 = strtoul(suuid_p1, nullptr, 16);
+    unsigned long p2 = strtoul(suuid_p2, nullptr, 16);
 
     p1 = be64toh(p1);
     memcpy(uuid, reinterpret_cast<const void*>(&p1), sizeof(p1));
@@ -195,5 +176,6 @@ bool UUID::operator==(const UUID &rhs) const
     return memcmp(data.get(), rhs.data.get(), UUID_NBYTES) == 0;
 }
 
-} // namespace p2p::util
+} // namespace util
+} // namespace p2p
 
