@@ -57,4 +57,8 @@ add_test(NAME record_table_test COMMAND record_table_test)
 add_executable(record_test record_test.cpp)
 target_link_libraries(record_test gtest_main p2pmain p2putil)
 add_test(NAME record_test COMMAND record_test)
+
+add_executable(log_test log_test.cpp)
+target_link_libraries(log_test gtest_main p2putil)
+add_test(NAME log_test COMMAND log_test)
 ### END Add/Make tests
