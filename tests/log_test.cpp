@@ -18,14 +18,14 @@ using namespace p2p::util;
 TEST(LogWriter, smoke)
 {
     LogWriter log_writer;
-    log_writer.add_logs("testing");
-    log_writer.add_logs("testing");
-    log_writer.add_logs("testing");
-    log_writer.add_logs("testing");
+    log_writer.write("testing");
+    log_writer.write("testing");
+    log_writer.write("testing");
+    log_writer.write("testing");
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    log_writer.add_logs("testing");
-    log_writer.add_logs("testing");
-    log_writer.add_logs("testing");
-    log_writer.add_logs("testing");
+    log_writer.write("testing");
+    log_writer.write("testing");
+    log_writer.write("testing");
+    log_writer.write("testing");
 }
 
