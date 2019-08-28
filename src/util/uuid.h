@@ -25,7 +25,7 @@ using uchar = unsigned char;
 class UUID
 {
     public:
-        UUID(std::unique_ptr<uchar[]> &&data);
+        explicit UUID(std::unique_ptr<uchar[]> &&data);
         UUID(UUID &&rhs) noexcept = default;
         UUID(const UUID &rhs);
 
@@ -46,7 +46,6 @@ class UUID
     protected:
     private:
         UUID();
-        explicit UUID(unsigned char* data);
         std::unique_ptr<uchar[]> data {nullptr};
 };
 

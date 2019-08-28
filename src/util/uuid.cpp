@@ -42,22 +42,16 @@ UUID UUID::init_random()
 
 UUID UUID::init_random(std::mt19937_64& gen)
 {
-    auto uuid = new uchar[UUID_NBYTES];
-    auto i_ptr = reinterpret_cast<uint64_t *>(uuid);
+    std::unique_ptr<uchar[]> uuid { new uchar[UUID_NBYTES] };
+    auto i_ptr = reinterpret_cast<uint64_t *>(uuid.get());
     *i_ptr = gen();
     ++i_ptr;
     *i_ptr = gen();
 
-    uuid[6] = 0x40ul | (uuid[6] & 0xful);
-    uuid[8] = 0x80ul | (uuid[8] & 0x3ful);
+    uuid.get()[6] = 0x40ul | (uuid[6] & 0xful);
+    uuid.get()[8] = 0x80ul | (uuid[8] & 0x3ful);
 
-    return UUID(uuid);
-}
-
-UUID::UUID(unsigned char* data):
-    data(new uchar[UUID_NBYTES])
-{
-    memcpy(this->data.get(), data, UUID_NBYTES);
+    return UUID(std::move(uuid));
 }
 
 UUID::UUID(std::unique_ptr<uchar[]> &&data):
@@ -96,14 +90,14 @@ UUID UUID::parse (const char *suuid)
         }
     }
 
-    auto uuid = new uchar[UUID_NBYTES];
+    std::unique_ptr<uchar[]> uuid { new uchar[UUID_NBYTES] };
     unsigned long p1 = strtoul(suuid_p1, nullptr, 16);
     unsigned long p2 = strtoul(suuid_p2, nullptr, 16);
 
     p1 = be64toh(p1);
-    memcpy(uuid, reinterpret_cast<const void*>(&p1), sizeof(p1));
+    memcpy(uuid.get(), reinterpret_cast<const void*>(&p1), sizeof(p1));
     p2 = be64toh(p2);
-    memcpy(&uuid[8], reinterpret_cast<const void*>(&p2), sizeof(p2));
+    memcpy(&uuid.get()[8], reinterpret_cast<const void*>(&p2), sizeof(p2));
 
     /*
     if ((uuid[8] ^ 0x80u) != 0)
@@ -112,7 +106,7 @@ UUID UUID::parse (const char *suuid)
     }
     */
 
-    return UUID(uuid);
+    return UUID(std::move(uuid));
 }
 
 std::string UUID::to_string () const
