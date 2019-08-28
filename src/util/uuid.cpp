@@ -48,8 +48,8 @@ UUID UUID::init_random(std::mt19937_64& gen)
     ++i_ptr;
     *i_ptr = gen();
 
-    uuid.get()[6] = 0x40ul | (uuid[6] & 0xful);
-    uuid.get()[8] = 0x80ul | (uuid[8] & 0x3ful);
+    uuid.get()[9] = 0x40ul | (uuid[9] & 0xful);
+    uuid.get()[7] = 0x80ul | (uuid[7] & 0x3ful);
 
     return UUID(std::move(uuid));
 }

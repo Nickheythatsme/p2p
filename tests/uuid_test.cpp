@@ -13,18 +13,24 @@ TEST(UUID, smoke)
     std::seed_seq seed{1};
     std::mt19937_64 gen(seed);
     auto u = UUID::init_random(gen);
-    cout << u << endl;
-    ASSERT_EQ("330b2bfa-fc89-4304-aa68-c3190300d2c3", u.to_string());
+    auto u_str = u.to_string();
+    EXPECT_EQ("c3d20003-19c3-48aa-8493-89fcfa2b0b33", u_str);
+
+    ASSERT_TRUE((u_str[19] & 0x8) == 0x8);
+    ASSERT_TRUE(u_str[14] == '4');
 }
 
 TEST(UUID, assureRandomness)
 {
-    std::vector<UUID> uuids{};
+    std::vector<UUID> uuids;
     std::seed_seq seed{1};
     std::mt19937_64 gen(seed);
     for(int i = 0; i < 10000; ++i) {
         auto new_uuid = UUID::init_random(gen);
         for(const auto &uuid : uuids) {
+            auto u_str = uuid.to_string();
+            ASSERT_TRUE((u_str[19] & 0x8) == 0x8);
+            ASSERT_TRUE(u_str[14] == '4');
             if(uuid == new_uuid) {
                 FAIL() << "a uuid was repeated \"" << uuid << "\" and \"" << new_uuid << "\"";
             }
@@ -50,7 +56,6 @@ TEST(UUID, speedParse)
     for (int i=0; i<10000; ++i)
     {
         auto u = UUID::parse(test_uuid.c_str());
-        auto u_string = u.to_string();
     }
     auto end = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
