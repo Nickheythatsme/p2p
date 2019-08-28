@@ -8,238 +8,166 @@
 // identical performance.
 
 #include "uuid.h"
+#include <chrono>
+#include <cstdio>
+#include <iomanip>
+#include <sstream>
 
-namespace p2p
-{
+namespace p2p {
 namespace util {
 
-UUID UUID::init_random ()
+UUID::UUID():
+    data(new uchar[UUID_NBYTES])
+{ }
+
+UUID::UUID(const UUID &rhs):
+    data(new uchar[UUID_NBYTES])
 {
-    UUID _uuid;
-
-    std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen (rd ()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<unsigned long> dis;
-    _uuid._1 = dis (gen);
-    _uuid._2 = dis (gen);
-
-    // Set bits according to standard
-    // Set the four leading bits of 7th byte to be 0100'B
-    _uuid._1 |= 0xf000ul;
-    _uuid._1 ^= 0xb000ul;
-
-    // Set the two leading bits of 9th byte to be 10'B
-    _uuid._2 |= 0x8000000000000000ul;
-
-    return _uuid;
+    memcpy(data.get(), rhs.data.get(), UUID_NBYTES);
 }
 
-UUID::UUID (const char *suuid)
+/*
+ * Generate a random uuid, of 16 bytes (128 bits) according to RFC 4122 section 4.4.
+ * Referenced from https://www.cryptosys.net/pki/uuid-rfc4122.html
+ */
+UUID UUID::init_random()
 {
-    *this = UUID::parse (suuid);
+    auto now = std::chrono::steady_clock::now();
+    auto since_epoch = now.time_since_epoch();
+    auto now_cast = std::chrono::duration_cast<std::chrono::milliseconds>(since_epoch).count();
+    std::seed_seq seed {now_cast};
+    std::mt19937_64 gen (seed);
+    return UUID::init_random(gen);
 }
+
+UUID UUID::init_random(std::mt19937_64& gen)
+{
+    std::unique_ptr<uchar[]> uuid { new uchar[UUID_NBYTES] };
+    auto i_ptr = reinterpret_cast<uint64_t *>(uuid.get());
+    *i_ptr = gen();
+    ++i_ptr;
+    *i_ptr = gen();
+
+    uuid.get()[6] = 0x40ul | (uuid[6] & 0xful);
+    uuid.get()[8] = 0x80ul | (uuid[8] & 0x3ful);
+
+    return UUID(std::move(uuid));
+}
+
+UUID::UUID(std::unique_ptr<uchar[]> &&data):
+    data(std::move(data))
+{ }
 
 UUID UUID::parse (const char *suuid)
 {
-    // XXXXXXXX-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    UUID u;
-    u._1 = 0ul;
-    int i;
-    char num_1[17];
-    char num_2[17];
-
+    // xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     if (suuid[8] != '-' || suuid[13] != '-' || suuid[18] != '-' || suuid[23] != '-')
-        {
-            throw std::invalid_argument ("Invalid uuid format: missing or misplaced '-'");
-        }
+    {
+        throw std::invalid_argument ("Invalid uuid format: missing or misplaced '-'");
+    }
+    if (suuid[14] != '4')
+    {
+        throw std::invalid_argument ("Leading 4 bits of 7th byte did not equal 0100'B");
+    }
 
-    for (i = 0; i < 8; ++i)
-        {
-            num_1[i] = *suuid;
-            ++suuid;
-        }
-    ++suuid;
-    for (; i < 12; ++i)
-        {
-            num_1[i] = *suuid;
-            ++suuid;
-        }
-    ++suuid;
-    for (; i < 16; ++i)
-        {
-            num_1[i] = *suuid;
-            ++suuid;
-        }
-    num_1[i] = '\0';
-    ++suuid;
-    for (i = 0; i < 4; ++i)
-        {
-            num_2[i] = *suuid;
-            ++suuid;
-        }
-    ++suuid;
-    for (; i < 16; ++i)
-        {
-            num_2[i] = *suuid;
-            ++suuid;
-        }
-    num_2[i] = '\0';
+    char suuid_p1[17];
+    char suuid_p2[17];
+    memcpy(suuid_p1, suuid, 8);
+    memcpy(&suuid_p1[8],  &suuid[9], 4);
+    memcpy(&suuid_p1[12], &suuid[14], 4);
+    memcpy(suuid_p2, &suuid[19], 4);
+    memcpy(&suuid_p2[4], &suuid[24], 12);
+    suuid_p1[16] = '\0';
+    suuid_p2[16] = '\0';
 
-    // Check if the parsed numbers are hex
-    for (i = 0; i < 16; ++i)
+    // Check if the numbers are hex
+    for (int i = 0; i < 16; ++i)
+    {
+        if (!isxdigit (static_cast<int>(suuid_p1[i])) &&
+            !isxdigit (static_cast<int>(suuid_p2[i])))
         {
-            if (!isxdigit (num_1[i]))
-                {
-                    throw std::invalid_argument (
-                        std::string ("UUID had non-hex value where it should have had one: ") + num_1[i]);
-                }
-            if (!isxdigit (num_2[i]))
-                {
-                    throw std::invalid_argument (
-                        std::string ("UUID had non-hex value where it should have had one: ") + num_2[i]);
-                }
+            throw std::invalid_argument("UUID had unexpected non-hex value");
         }
+    }
 
-    UUID uuid;
+    std::unique_ptr<uchar[]> uuid { new uchar[UUID_NBYTES] };
+    unsigned long p1 = strtoul(suuid_p1, nullptr, 16);
+    unsigned long p2 = strtoul(suuid_p2, nullptr, 16);
 
-    uuid._1 = strtoul (num_1, nullptr, 16);
-    uuid._2 = strtoul (num_2, nullptr, 16);
+    p1 = be64toh(p1);
+    memcpy(uuid.get(), reinterpret_cast<const void*>(&p1), sizeof(p1));
+    p2 = be64toh(p2);
+    memcpy(&uuid.get()[8], reinterpret_cast<const void*>(&p2), sizeof(p2));
 
-    // Check bits
-    auto corrected_uuid = uuid._1 | 0xf000ul;
-    corrected_uuid ^= 0xb000ul;
-    if (corrected_uuid != uuid._1)
-        {
-            throw std::invalid_argument ("Leading 4 bits of 7th byte did not equal 0100'B");
-        }
+    /*
+    if ((uuid[8] ^ 0x80u) != 0)
+    {
+        throw std::invalid_argument ("Leading 2 bits of 9th byte did not equal 10'B");
+    }
+    */
 
-    if ((uuid._2 |= 0x8000000000000000ul) != uuid._2)
-        {
-            throw std::invalid_argument ("Leading 2 bits of 9th byte did not equal 10'B");
-        }
-
-    return uuid;
+    return UUID(std::move(uuid));
 }
 
 std::string UUID::to_string () const
 {
-    char suuid[37];
-#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-    auto current = (unsigned char *) &_1;
-    current += 7; // Move to the last byte of the end of the number
-    int i;
+    std::stringstream ss;
+    auto current = data.get();
     // XXXXXXXX-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    for (i = 0; i < 8; i += 2)
-        {
-            sprintf (&suuid[i], "%.2x", *current);
-            --current;
-        }
-    // xxxxxxxx-XXXX-xxxx-xxxx-xxxxxxxxxxxx
-    suuid[i++] = '-';
-    for (int j = 0; j < 4; j += 2, i += 2)
-        {
-            sprintf (&suuid[i], "%.2x", *current);
-            --current;
-        }
-    // xxxxxxxx-xxxx-XXXX-xxxx-xxxxxxxxxxxx
-    suuid[i++] = '-';
-    for (int j = 0; j < 4; j += 2, i += 2)
-        {
-            sprintf (&suuid[i], "%.2x", *current);
-            --current;
-        }
-    // Move to the second integer
-    current = (unsigned char *) &_2;
-    current += 7; // Move to the last byte of the end of the number
-    // xxxxxxxx-xxxx-xxxx-XXXX-xxxxxxxxxxxx
-    suuid[i++] = '-';
-    for (int j = 0; j < 4; j += 2, i += 2)
-        {
-            sprintf (&suuid[i], "%.2x", *current);
-            --current;
-        }
-    // xxxxxxxx-xxxx-xxxx-xxxx-XXXXXXXXXXXX
-    suuid[i++] = '-';
-    for (int j = 0; j < 12; j += 2, i += 2)
-        {
-            sprintf (&suuid[i], "%.2x", *current);
-            --current;
-        }
-    suuid[i] = '\0';
-#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-    auto current = (unsigned char*) &_1;
-    int i;
-    // XXXXXXXX-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    for (i=0; i<8;i += 2)
+    for (int i = 0; i < 4; ++i)
     {
-        sprintf(&suuid[i], "%.2x", *current);
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)*current;
         ++current;
     }
     // xxxxxxxx-XXXX-xxxx-xxxx-xxxxxxxxxxxx
-    suuid[i++] = '-';
-    for (int j=0; j<4; j+=2, i += 2)
+    ss << '-';
+    for (int i = 0; i < 2; ++i)
     {
-        sprintf(&suuid[i], "%.2x", *current);
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)*current;
         ++current;
     }
     // xxxxxxxx-xxxx-XXXX-xxxx-xxxxxxxxxxxx
-    suuid[i++] = '-';
-    for (int j=0; j<4; j+=2, i += 2)
+    ss << '-';
+    for (int i = 0; i < 2; ++i)
     {
-        sprintf(&suuid[i], "%.2x", *current);
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)*current;
         ++current;
     }
-    // Move to the second integer
-    current = (unsigned char*) &_2;
-    current += 7; // Move to the last byte of the end of the number
     // xxxxxxxx-xxxx-xxxx-XXXX-xxxxxxxxxxxx
-    suuid[i++] = '-';
-    for (int j=0; j<4; j+=2, i += 2)
+    ss << '-';
+    for (int i = 0; i < 2; ++i)
     {
-        sprintf(&suuid[i], "%.2x", *current);
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)*current;
         ++current;
     }
     // xxxxxxxx-xxxx-xxxx-xxxx-XXXXXXXXXXXX
-    suuid[i++] = '-';
-    for (int j=0; j<12; j+=2, i += 2)
+    ss << '-';
+    for (int i = 0; i < 6; ++i)
     {
-        sprintf(&suuid[i], "%.2x", *current);
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)*current;
         ++current;
     }
-    suuid[i] = '\0';
-#endif
-    return std::string (suuid);
+    return ss.str();
 }
 
 // Displayed as
 // XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-std::ostream &operator<< (std::ostream &out, const UUID &u)
+std::ostream &operator<<(std::ostream &out, const UUID &u)
 {
     out << u.to_string ();
     return out;
 }
 
-UUID &UUID::operator= (const char *str)
+UUID &UUID::operator= (const UUID &rhs)
 {
-    auto parsed = UUID::parse (str);
-    return this->operator= (parsed);
-}
-
-UUID &UUID::operator= (const UUID &uuid)
-{
-    _1 = uuid._1;
-    _2 = uuid._2;
+    memcpy(data.get(), rhs.data.get(), UUID_NBYTES);
     return *this;
 }
 
 // Equality operators
-bool UUID::operator== (const UUID &rhs) const
+bool UUID::operator==(const UUID &rhs) const
 {
-    return _1 == rhs._1 && _2 == rhs._2;
-}
-bool UUID::operator== (const char *str) const
-{
-    return this->to_string () == str;
+    return memcmp(data.get(), rhs.data.get(), UUID_NBYTES) == 0;
 }
 
 } // namespace util

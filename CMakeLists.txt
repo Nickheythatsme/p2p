@@ -6,3 +6,8 @@ enable_testing()
 
 add_subdirectory(src)
 add_subdirectory(tests)
+
+# TODO remove scratch exec
+add_executable(p2p main.cpp)
+target_link_libraries(p2p p2putil)
+

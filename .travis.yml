@@ -7,12 +7,6 @@ matrix:
   include:
     - env: COMPILER=g++-6 BUILD=Debug STANDARD=17
       os: linux
-      addons:
-        apt:
-          update: true
-          packages:
-            - g++-5
-            - cmake
     - env: COMPILER=g++-6 BUILD=Debug STANDARD=17
       os: osx
 
