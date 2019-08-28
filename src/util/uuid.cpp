@@ -48,8 +48,8 @@ UUID UUID::init_random(std::mt19937_64& gen)
     ++i_ptr;
     *i_ptr = gen();
 
-    uuid.get()[6] = 0x40ul | (uuid[6] & 0xful);
-    uuid.get()[8] = 0x80ul | (uuid[8] & 0x3ful);
+    uuid.get()[9] = 0x40ul | (uuid[9] & 0xful);
+    uuid.get()[7] = 0x80ul | (uuid[7] & 0x3ful);
 
     return UUID(std::move(uuid));
 }
@@ -94,10 +94,8 @@ UUID UUID::parse (const char *suuid)
     unsigned long p1 = strtoul(suuid_p1, nullptr, 16);
     unsigned long p2 = strtoul(suuid_p2, nullptr, 16);
 
-    p1 = be64toh(p1);
-    memcpy(uuid.get(), reinterpret_cast<const void*>(&p1), sizeof(p1));
-    p2 = be64toh(p2);
-    memcpy(&uuid.get()[8], reinterpret_cast<const void*>(&p2), sizeof(p2));
+    memcpy(uuid.get(), reinterpret_cast<const void*>(&p2), sizeof(p1));
+    memcpy(&uuid.get()[8], reinterpret_cast<const void*>(&p1), sizeof(p2));
 
     /*
     if ((uuid[8] ^ 0x80u) != 0)
@@ -112,40 +110,40 @@ UUID UUID::parse (const char *suuid)
 std::string UUID::to_string () const
 {
     std::stringstream ss;
-    auto current = data.get();
+    auto current = &data.get()[UUID_NBYTES - 1];
     // XXXXXXXX-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    for (int i = 0; i < 4; ++i)
+    for (int i=0; i<4; ++i)
     {
         ss << std::setw(2) << std::setfill('0') << std::hex << (int)*current;
-        ++current;
+        --current;
     }
+    ss << '-';
     // xxxxxxxx-XXXX-xxxx-xxxx-xxxxxxxxxxxx
-    ss << '-';
     for (int i = 0; i < 2; ++i)
     {
         ss << std::setw(2) << std::setfill('0') << std::hex << (int)*current;
-        ++current;
+        --current;
     }
+    ss << '-';
     // xxxxxxxx-xxxx-XXXX-xxxx-xxxxxxxxxxxx
-    ss << '-';
     for (int i = 0; i < 2; ++i)
     {
         ss << std::setw(2) << std::setfill('0') << std::hex << (int)*current;
-        ++current;
+        --current;
     }
+    ss << '-';
     // xxxxxxxx-xxxx-xxxx-XXXX-xxxxxxxxxxxx
-    ss << '-';
     for (int i = 0; i < 2; ++i)
     {
         ss << std::setw(2) << std::setfill('0') << std::hex << (int)*current;
-        ++current;
+        --current;
     }
-    // xxxxxxxx-xxxx-xxxx-xxxx-XXXXXXXXXXXX
     ss << '-';
+    // xxxxxxxx-xxxx-xxxx-xxxx-XXXXXXXXXXXX
     for (int i = 0; i < 6; ++i)
     {
         ss << std::setw(2) << std::setfill('0') << std::hex << (int)*current;
-        ++current;
+        --current;
     }
     return ss.str();
 }
