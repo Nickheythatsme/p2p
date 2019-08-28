@@ -1,3 +1,9 @@
+/*
+ * Nicholas Grout 8/27
+ *
+ * Warning: This implementation is in absolutely no way endian agnostic.
+ * It only works on little endian as of now.
+ */
 #ifndef P2P_UUID_H
 #define P2P_UUID_H
 
