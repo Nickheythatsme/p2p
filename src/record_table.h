@@ -20,10 +20,10 @@ using namespace util;
 class RecordTable
 {
     public:
-        RecordTable();
-        RecordTable(const RecordTable &rhs);
-        RecordTable(RecordTable &&rhs) noexcept;
-        ~RecordTable();
+        RecordTable() = default;
+        RecordTable(const RecordTable &rhs) = default;
+        RecordTable(RecordTable &&rhs) noexcept = default;
+        ~RecordTable() = default;
     protected:
     private:
         HashTable<Hash256, std::unique_ptr<Record>> record_table {RECORD_TABLE_SIZE};

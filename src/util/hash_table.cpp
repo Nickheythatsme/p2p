@@ -83,6 +83,17 @@ table(new Entries<K, V>[len])
 }
 
 template<class K, class V>
+HashTable<K,V>::HashTable(const HashTable<K, V> &rhs):
+    len(rhs.len),
+    table(new Entries<K, V>[len])
+{
+    for (int i=0; i<len; ++i) {
+        this->table[i] = rhs.table[i];
+    }
+}
+
+
+template<class K, class V>
 HashTable<K, V>::HashTable(HashTable &&rhs) noexcept :
 len(rhs.len),
 table(std::move(rhs.table))

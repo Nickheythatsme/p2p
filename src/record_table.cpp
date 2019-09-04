@@ -7,22 +7,5 @@
 namespace p2p
 {
 
-RecordTable::RecordTable()
-{
-
-}
-
-RecordTable::RecordTable(const RecordTable &rhs)
-{
-
-}
-RecordTable::RecordTable(RecordTable &&rhs) noexcept
-{
-
-}
-RecordTable::~RecordTable()
-{
-
-}
 
 } // namespace p2p

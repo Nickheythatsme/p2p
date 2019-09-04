@@ -54,7 +54,7 @@ class HashTable
         HashTable ();
         explicit HashTable (size_t len);
         HashTable (HashTable<K, V> &&rhs) noexcept;
-        HashTable (const HashTable<K, V> &rhs) = delete;
+        HashTable (const HashTable<K, V> &rhs);
         ~HashTable () = default;
         HashTable<K, V> &put (K key, V value);
         const V &operator[](const K &key) const;
