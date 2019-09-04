@@ -11,14 +11,13 @@ namespace p2p
 {
 using namespace util;
 
-class PeerNode
+class Node
 {
     public:
-        PeerNode();
-        PeerNode(const PeerNode &rhs);
-        PeerNode(PeerNode &&rhs) noexcept;
-        ~PeerNode();
-        std::string retrieve(const Hash256& hash) const;
+        Node();
+        Node(const Node &rhs);
+        Node(Node &&rhs) noexcept;
+        ~Node();
     protected:
     private:
 };

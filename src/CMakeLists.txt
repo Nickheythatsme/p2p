@@ -8,9 +8,13 @@ add_library(p2putil SHARED
         util/uuid.cpp
         )
 
+add_library(p2pnetworking SHARED
+        networking/listener.cpp
+        )
+
 add_library(p2pmain SHARED
         util/uuid.cpp
         crypto/sha256.cpp
-        peer_node.cpp
+        node.cpp
         record.cpp
         )
