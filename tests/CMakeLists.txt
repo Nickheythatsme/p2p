@@ -50,11 +50,11 @@ add_executable(hash_table_test hash_table_test.cpp)
 target_link_libraries(hash_table_test gtest_main p2pcrypto)
 add_test(NAME hash_table_test COMMAND hash_table_test)
 
-add_executable(record_table_test record_table_test.cpp)
-target_link_libraries(record_table_test gtest_main p2pmain p2putil)
-add_test(NAME record_table_test COMMAND record_table_test)
-
 add_executable(record_test record_test.cpp)
 target_link_libraries(record_test gtest_main p2pmain p2putil)
 add_test(NAME record_test COMMAND record_test)
+
+add_executable(listener_test listener_test.cpp)
+target_link_libraries(listener_test gtest_main p2pmain p2putil p2pnetworking)
+add_test(NAME listener_test COMMAND listener_test)
 ### END Add/Make tests
