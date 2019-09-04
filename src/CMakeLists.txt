@@ -6,7 +6,6 @@ add_library(p2pcrypto STATIC
 
 add_library(p2putil SHARED
         util/uuid.cpp
-        util/logging.cpp
         )
 
 add_library(p2pmain SHARED
