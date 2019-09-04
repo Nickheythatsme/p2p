@@ -13,6 +13,7 @@
 #include <random>
 #include <string>
 #include <exception>
+#include <functional>
 
 #if !defined(HAVE_DECL_BE64TOH) || HAVE_DECL_BE64TOH == 0
     #include "../crypto/endian.h"
@@ -52,13 +53,32 @@ class UUID
 
         // Mod operator
         uint64_t operator%(uint64_t max) const;
+        friend struct std::hash<UUID>;
     protected:
     private:
         UUID();
         std::unique_ptr<uchar[]> data {nullptr};
 };
 
+
 } // namespace util
 } // namespace p2p
+
+namespace std
+{
+template<> struct hash<p2p::util::UUID>
+{
+    typedef p2p::util::UUID argument_type;
+    typedef std::size_t result_type;
+    result_type operator()(argument_type const& s) const noexcept
+    {
+        auto d1 = reinterpret_cast<unsigned long*>(s.data.get());
+        auto d2 = reinterpret_cast<unsigned long*>(&s.data.get()[8]);
+        result_type const h1 ( std::hash<unsigned long>{}(*d1) );
+        result_type const h2 ( std::hash<unsigned long>{}(*d2) );
+        return h1 ^ (h2 << 0x1);
+    }
+};
+}
 
 #endif // P2P_UUID_H

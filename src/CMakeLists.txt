@@ -12,6 +12,5 @@ add_library(p2pmain SHARED
         util/uuid.cpp
         crypto/sha256.cpp
         peer_node.cpp
-        record_table.cpp
         record.cpp
         )

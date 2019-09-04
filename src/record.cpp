@@ -10,22 +10,28 @@
 namespace p2p {
 using namespace util;
 
-Record::Record(Hash256 hash):
-    hash(std::move(hash))
+Record::Record(UUID uuid):
+    uuid(std::move(uuid))
 { }
 
-bool operator==(const Record& lhs, const Hash256& rhs)
+bool operator==(const Record& lhs, const UUID& rhs)
 {
-    return lhs.hash == rhs;
+    return lhs.uuid == rhs;
 }
 
 bool operator==(const Record& lhs, const Record &rhs)
 {
-    return lhs.hash == rhs.hash;
+    return lhs.uuid == rhs.uuid;
 }
 
-LocalRecord::LocalRecord(Hash256 hash, const char *filename):
-    Record(std::move(hash)),
+const UUID& Record::get_uuid() const
+{
+    return uuid;
+}
+
+LocalRecord::LocalRecord(UUID uuid, Hash256 sha256, const char *filename):
+    Record(std::move(uuid)),
+    sha256(std::move(sha256)),
     filename(filename)
 { }
 
@@ -37,7 +43,7 @@ LocalRecord LocalRecord::CreateLocalRecord(const char* filename)
         throw record_exception("file does not exist");
     }
     fin >> builder;
-    return LocalRecord(builder.finalize(), filename);
+    return LocalRecord(UUID::init_random(), builder.finalize(), filename);
 }
 
 bool LocalRecord::is_remote() const
@@ -63,7 +69,7 @@ std::ostream &LocalRecord::retrieve(std::ostream &out)
         out.write(buff, last_read);
         builder.write(reinterpret_cast<unsigned char*>(buff), last_read);
     }
-    if (builder.finalize() != this->hash) {
+    if (builder.finalize() != this->sha256) {
         throw record_exception("stored hash does not equal calculated hash");
     }
     return out;

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
+#include <functional>
 
 using namespace p2p::util;
 using std::cout;
@@ -80,4 +81,13 @@ TEST(UUID, modOperator)
 {
     auto uuid = UUID::parse("c3d20003-19c3-48aa-8493-89fcfa2b0b33");
     cout << "mod: " << uuid % 10 << endl;
+    ASSERT_EQ(uuid % 10, 7);
+}
+
+TEST(UUID, stdHash) {
+    auto uuid = UUID::parse("c3d20003-19c3-48aa-8493-89fcfa2b0b33");
+    auto result = std::hash<UUID> {}(uuid);
+    cout << "hash: " << result << '\n';
+    cout << "sizeof(unsigned long) = " << sizeof(unsigned long) << '\n';
+    ASSERT_EQ(231805616051296871, result);
 }

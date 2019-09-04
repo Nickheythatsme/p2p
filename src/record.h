@@ -6,6 +6,7 @@
 #define _RECORD_H_
 
 #include "util/hash.hpp"
+#include "util/uuid.h"
 #include <fstream>
 #include <exception>
 
@@ -38,16 +39,17 @@ class Record
 {
     public:
         Record() = delete;
-        explicit Record(Hash256 hash);
+        explicit Record(UUID uuid);
         Record(const Record &rhs) = default;
         Record(Record &&rhs) noexcept = default;
         virtual ~Record() = default;
-        friend bool operator==(const Record& lhs, const Hash256& rhs);
+        friend bool operator==(const Record& lhs, const UUID& rhs);
         friend bool operator==(const Record& lhs, const Record &rhs);
         virtual std::ostream& retrieve(std::ostream& in) = 0;
         virtual bool is_remote() const = 0;
+        const UUID& get_uuid() const;
     protected:
-        Hash256 hash;
+        UUID uuid;
 };
 
 class LocalRecord: public Record
@@ -55,13 +57,14 @@ class LocalRecord: public Record
     public:
         LocalRecord() = delete;
         static LocalRecord CreateLocalRecord(const char* filename);
-        explicit LocalRecord(Hash256 hash, const char *filename);
+        LocalRecord(UUID uuid, Hash256 sha256, const char *filename);
         LocalRecord(const LocalRecord &rhs) = default;
         LocalRecord(LocalRecord &&rhs) noexcept = default;
         std::ostream& retrieve(std::ostream& in) override;
         bool is_remote() const override;
     private:
         std::string filename;
+        Hash256 sha256; // to verify the integrity of the record
 };
 
 
