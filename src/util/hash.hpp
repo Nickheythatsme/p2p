@@ -43,66 +43,66 @@ class hash_exception : public std::exception
         const char *what_arg;
 };
 
-class Hash
+class Hash256
 {
     public:
-        explicit Hash(std::unique_ptr<unsigned char[]> &&hash_value) :
+        explicit Hash256(std::unique_ptr<unsigned char[]> &&hash_value) :
         hash_value(nullptr)
         {
             this->hash_value.reset(reinterpret_cast<uint64_t *>(hash_value.release()));
-            for(int i = 0; i < Hash::OUTPUT_SIZE; ++i) {
+            for(int i = 0; i < Hash256::OUTPUT_SIZE; ++i) {
                 auto be = this->hash_value.get()[i];
                 this->hash_value.get()[i] = be64toh(be);
             }
         }
-        Hash(const Hash &rhs)
+        Hash256(const Hash256 &rhs)
         {
             memcpy(hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);
         }
-        Hash(Hash &&rhs) noexcept:
+        Hash256(Hash256 &&rhs) noexcept:
             hash_value(std::move(rhs.hash_value))
         {
-            rhs.hash_value = std::make_unique<uint64_t[]>(Hash::OUTPUT_SIZE);
+            rhs.hash_value = std::make_unique<uint64_t[]>(Hash256::OUTPUT_SIZE);
         }
-        friend std::ostream &operator<<(std::ostream &out, const Hash &to_print)
+        friend std::ostream &operator<<(std::ostream &out, const Hash256 &to_print)
         {
             auto previous_flags = out.flags();
-            for(int i = 0; i < Hash::OUTPUT_SIZE; ++i) {
+            for(int i = 0; i < Hash256::OUTPUT_SIZE; ++i) {
                 out << std::hex << to_print.hash_value.get()[i];
             }
             out.flags(previous_flags);
             return out;
         }
         // Returns the memcmp of the two values, 0 means equal
-        int compare(const Hash &rhs) const
+        int compare(const Hash256 &rhs) const
         {
             return memcmp(this->hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);
         }
-        friend bool operator==(const Hash &lhs, const Hash &rhs)
+        friend bool operator==(const Hash256 &lhs, const Hash256 &rhs)
         {
             return lhs.compare(rhs) == 0;
         }
-        friend bool operator!=(const Hash &lhs, const Hash &rhs)
+        friend bool operator!=(const Hash256 &lhs, const Hash256 &rhs)
         {
             return lhs.compare(rhs) != 0;
         }
-        friend bool operator<(const Hash &lhs, const Hash &rhs)
+        friend bool operator<(const Hash256 &lhs, const Hash256 &rhs)
         {
             return lhs.compare(rhs) < 0;
         }
-        friend bool operator>(const Hash &lhs, const Hash &rhs)
+        friend bool operator>(const Hash256 &lhs, const Hash256 &rhs)
         {
             return lhs.compare(rhs) > 0;
         }
-        friend bool operator<=(const Hash &lhs, const Hash &rhs)
+        friend bool operator<=(const Hash256 &lhs, const Hash256 &rhs)
         {
             return lhs.compare(rhs) <= 0;
         }
-        friend bool operator>=(const Hash &lhs, const Hash &rhs)
+        friend bool operator>=(const Hash256 &lhs, const Hash256 &rhs)
         {
             return lhs.compare(rhs) >= 0;
         }
-        Hash &operator=(const Hash &rhs)
+        Hash256 &operator=(const Hash256 &rhs)
         {
             memcpy(hash_value.get(), rhs.hash_value.get(), CSHA256::OUTPUT_SIZE);
             return *this;
@@ -118,7 +118,7 @@ class Hash
         }
         static const size_t OUTPUT_SIZE = 4;
     protected:
-        std::unique_ptr<uint64_t[]> hash_value{new uint64_t[Hash::OUTPUT_SIZE]};
+        std::unique_ptr<uint64_t[]> hash_value{new uint64_t[Hash256::OUTPUT_SIZE]};
 };
 
 class HashBuilder
@@ -148,7 +148,7 @@ class HashBuilder
             }
             return in;
         }
-        Hash finalize()
+        Hash256 finalize()
         {
             if(finalized) {
                 throw hash_exception("hash cannot be finalized more than once");
@@ -156,7 +156,7 @@ class HashBuilder
             std::unique_ptr<unsigned char[]> md{new unsigned char[CSHA256::OUTPUT_SIZE]};
             csha256.Finalize(md.get());
             finalized = true;
-            return Hash(std::move(md));
+            return Hash256(std::move(md));
         }
         HashBuilder &reset()
         {

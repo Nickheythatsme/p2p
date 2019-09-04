@@ -10,11 +10,11 @@
 namespace p2p {
 using namespace util;
 
-Record::Record(Hash hash):
+Record::Record(Hash256 hash):
     hash(std::move(hash))
 { }
 
-bool operator==(const Record& lhs, const Hash& rhs)
+bool operator==(const Record& lhs, const Hash256& rhs)
 {
     return lhs.hash == rhs;
 }
@@ -24,7 +24,7 @@ bool operator==(const Record& lhs, const Record &rhs)
     return lhs.hash == rhs.hash;
 }
 
-LocalRecord::LocalRecord(Hash hash, const char *filename):
+LocalRecord::LocalRecord(Hash256 hash, const char *filename):
     Record(std::move(hash)),
     filename(filename)
 { }

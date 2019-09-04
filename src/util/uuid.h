@@ -49,6 +49,9 @@ class UUID
 
         // Equality
         bool operator==(const UUID &rhs) const;
+
+        // Mod operator
+        uint64_t operator%(uint64_t max) const;
     protected:
     private:
         UUID();

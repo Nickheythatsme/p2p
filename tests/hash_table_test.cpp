@@ -135,7 +135,7 @@ TEST(HashTable, speed)
 
 TEST(HashTable, usingHashObject)
 {
-    HashTable<Hash, std::string> hashTable;
+    HashTable<Hash256, std::string> hashTable;
     HashBuilder builder;
 
     for(int i = 0; i < 10; ++i) {

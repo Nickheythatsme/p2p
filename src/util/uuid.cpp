@@ -168,6 +168,15 @@ bool UUID::operator==(const UUID &rhs) const
     return memcmp(data.get(), rhs.data.get(), UUID_NBYTES) == 0;
 }
 
+uint64_t UUID::operator%(uint64_t max) const
+{
+    auto dptr = reinterpret_cast<uint64_t*>(data.get());
+    auto acc = *dptr;
+    ++dptr;
+    acc += *dptr;
+    return acc % max;
+}
+
 } // namespace util
 } // namespace p2p
 

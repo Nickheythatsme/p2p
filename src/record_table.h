@@ -26,7 +26,7 @@ class RecordTable
         ~RecordTable();
     protected:
     private:
-        HashTable<Hash, std::unique_ptr<Record>> record_table {RECORD_TABLE_SIZE};
+        HashTable<Hash256, std::unique_ptr<Record>> record_table {RECORD_TABLE_SIZE};
 };
 
 } // namespace util

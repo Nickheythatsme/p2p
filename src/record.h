@@ -38,16 +38,16 @@ class Record
 {
     public:
         Record() = delete;
-        explicit Record(Hash hash);
+        explicit Record(Hash256 hash);
         Record(const Record &rhs) = default;
         Record(Record &&rhs) noexcept = default;
         virtual ~Record() = default;
-        friend bool operator==(const Record& lhs, const Hash& rhs);
+        friend bool operator==(const Record& lhs, const Hash256& rhs);
         friend bool operator==(const Record& lhs, const Record &rhs);
         virtual std::ostream& retrieve(std::ostream& in) = 0;
         virtual bool is_remote() const = 0;
     protected:
-        Hash hash;
+        Hash256 hash;
 };
 
 class LocalRecord: public Record
@@ -55,7 +55,7 @@ class LocalRecord: public Record
     public:
         LocalRecord() = delete;
         static LocalRecord CreateLocalRecord(const char* filename);
-        explicit LocalRecord(Hash hash, const char *filename);
+        explicit LocalRecord(Hash256 hash, const char *filename);
         LocalRecord(const LocalRecord &rhs) = default;
         LocalRecord(LocalRecord &&rhs) noexcept = default;
         std::ostream& retrieve(std::ostream& in) override;

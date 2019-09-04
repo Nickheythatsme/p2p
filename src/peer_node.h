@@ -18,7 +18,7 @@ class PeerNode
         PeerNode(const PeerNode &rhs);
         PeerNode(PeerNode &&rhs) noexcept;
         ~PeerNode();
-        std::string retrieve(const Hash& hash) const;
+        std::string retrieve(const Hash256& hash) const;
     protected:
     private:
 };

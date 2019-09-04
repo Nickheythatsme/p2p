@@ -75,3 +75,9 @@ TEST(UUID, parseShouldThrowException)
         std::invalid_argument
     );
 }
+
+TEST(UUID, modOperator)
+{
+    auto uuid = UUID::parse("c3d20003-19c3-48aa-8493-89fcfa2b0b33");
+    cout << "mod: " << uuid % 10 << endl;
+}
