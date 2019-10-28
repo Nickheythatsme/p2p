@@ -8,9 +8,11 @@
 #define HASH_HPP
 
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <exception>
 #include <cstring>
+#include <string>
 #include "../crypto/sha256.h"
 
 #if !defined(HAVE_DECL_BE64TOH) || HAVE_DECL_BE64TOH == 0
@@ -46,6 +48,12 @@ class hash_exception : public std::exception
 class Hash256
 {
     public:
+        Hash256()
+        {
+            for(int i = 0; i < Hash256::OUTPUT_SIZE; ++i) {
+                this->hash_value.get()[i] = 0x0;
+            }
+        }
         explicit Hash256(std::unique_ptr<unsigned char[]> &&hash_value) :
         hash_value(nullptr)
         {
@@ -63,6 +71,17 @@ class Hash256
             hash_value(std::move(rhs.hash_value))
         {
             rhs.hash_value = std::make_unique<uint64_t[]>(Hash256::OUTPUT_SIZE);
+        }
+        /**
+         * Output to a human readable string.
+         */
+        std::string operator<<(std::ostream& out) const
+        {
+            std::stringstream ss;
+            for(int i = 0; i < Hash256::OUTPUT_SIZE; ++i) {
+                ss << std::hex << hash_value.get()[i];
+            }
+            return ss.str();
         }
         friend std::ostream &operator<<(std::ostream &out, const Hash256 &to_print)
         {

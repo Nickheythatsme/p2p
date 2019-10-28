@@ -14,6 +14,7 @@
 namespace p2p
 {
 using namespace util;
+using namespace networking;
 
 class record_exception : public std::exception
 {
@@ -36,7 +37,7 @@ class record_exception : public std::exception
         const char *what_arg;
 };
 
-class Record
+class Record: public Serializable
 {
     public:
         Record() = default;
@@ -46,13 +47,14 @@ class Record
         virtual ~Record() = default;
         friend bool operator==(const Record& lhs, const UUID& rhs);
         friend bool operator==(const Record& lhs, const Record &rhs);
-        virtual std::ostream& retrieve(std::ostream& in) = 0;
         const UUID& get_uuid() const;
+        std::ostream& serialize(std::ostream& out) const;
+        std::ostream& unserialize(std::istream& in);
     protected:
         UUID uuid;
-        std::string filename;
+        Hash256 sha256; // to verify the integrity of the record
         uint64_t record_length;
-        // Hash256 sha256; // to verify the integrity of the record
+        std::unique_ptr<char[]> record_contents {nullptr};
 };
 
 } // namespace p2p
