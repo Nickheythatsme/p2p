@@ -62,7 +62,7 @@ inline std::ostream& writeNetworkShort(std::ostream& ostr, uint16_t value)
 class Serializable {
     public:
         virtual std::ostream& serialize(std::ostream& out) const = 0;
-        virtual std::ostream& unserialize(std::istream& in) = 0;
+        virtual std::istream& unserialize(std::istream& in) = 0;
 };
 
 } // namespace networking

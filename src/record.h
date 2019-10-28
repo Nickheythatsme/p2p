@@ -49,7 +49,7 @@ class Record: public Serializable
         friend bool operator==(const Record& lhs, const Record &rhs);
         const UUID& get_uuid() const;
         std::ostream& serialize(std::ostream& out) const;
-        std::ostream& unserialize(std::istream& in);
+        std::istream& unserialize(std::istream& in);
     protected:
         UUID uuid;
         Hash256 sha256; // to verify the integrity of the record

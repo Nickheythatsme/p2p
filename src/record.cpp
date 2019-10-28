@@ -38,7 +38,7 @@ std::ostream& Record::serialize(std::ostream& out) const
     return out;
 }
 
-std::ostream& Record::unserialize(std::istream& in)
+std::istream& Record::unserialize(std::istream& in)
 {
     /*
         UUID uuid;
@@ -46,13 +46,14 @@ std::ostream& Record::unserialize(std::istream& in)
         uint64_t record_length;
         std::unique_ptr<char[]> record_contents {nullptr};
         */
-    in >> uuid;
+    uuid.unserialize(in);
     HashBuilder builder;
     in >> builder;
     sha256 = builder.finalize();
     record_length = readNetworkLongLong(in);
     record_contents.reset(new char[record_length]);
     in.read(record_contents.get(), record_length);
+    return in;
 }
 
 } // namespace p2p
