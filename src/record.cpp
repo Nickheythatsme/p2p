@@ -9,10 +9,15 @@
 
 namespace p2p {
 using namespace util;
+using namespace networking;
 
-Record::Record(UUID uuid):
-    uuid(std::move(uuid))
-{ }
+Record::Record(UUID uuid, Hash256 sha256, uint64_t record_length, std::unique_ptr<char[]> record_contents) :
+    uuid(std::move(uuid)),
+    sha256(std::move(sha256)),
+    record_length(record_length),
+    record_contents(std::move(record_contents))
+{
+}
 
 bool operator==(const Record& lhs, const UUID& rhs)
 {

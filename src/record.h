@@ -6,8 +6,8 @@
 #define _RECORD_H_
 
 #include "util/hash.hpp"
-#include "networking/serialize.h"
 #include "util/uuid.h"
+#include "networking/serialize.h"
 #include <fstream>
 #include <exception>
 
@@ -41,7 +41,7 @@ class Record: public Serializable
 {
     public:
         Record() = default;
-        explicit Record(UUID uuid);
+        explicit Record(UUID uuid, Hash256 sha256, uint64_t record_length, std::unique_ptr<char[]> record_contents);
         Record(const Record &rhs) = default;
         Record(Record &&rhs) noexcept = default;
         virtual ~Record() = default;

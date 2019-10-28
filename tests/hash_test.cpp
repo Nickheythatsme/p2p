@@ -103,8 +103,6 @@ TEST(HashTest, unserialize) {
 }
 
 TEST(HashTest, serialize) {
-    // explicit Hash256(std::unique_ptr<unsigned char[]> &&hash_value) :
-    //    this->hash_value.reset(reinterpret_cast<uint64_t *>(hash_value.release()));
     auto data = std::make_unique<uint64_t[]>(Hash256::OUTPUT_SIZE);
     for (int i=0; i < Hash256::OUTPUT_SIZE; ++i) {
         data[i] = 0x1122334455667788;
