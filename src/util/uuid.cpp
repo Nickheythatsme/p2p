@@ -97,6 +97,7 @@ UUID UUID::parse (const char *suuid)
     memcpy(uuid.get(), reinterpret_cast<const void*>(&p2), sizeof(p1));
     memcpy(&uuid.get()[8], reinterpret_cast<const void*>(&p1), sizeof(p2));
 
+    //TODO fix test here
     /*
     if ((uuid[8] ^ 0x80u) != 0)
     {
@@ -146,6 +147,15 @@ std::string UUID::to_string () const
         --current;
     }
     return ss.str();
+}
+
+std::istream &operator>>(std::istream &in, UUID &u)
+{
+    char raw_data[36];
+    in.read(raw_data, 36);
+    auto uuid = UUID::parse(raw_data);
+    u.data = std::move(uuid.data);
+    return in;
 }
 
 // Displayed as

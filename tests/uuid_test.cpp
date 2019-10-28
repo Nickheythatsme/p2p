@@ -1,6 +1,7 @@
 #include "../src/util/uuid.h"
 #include "gtest/gtest.h"
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <chrono>
 #include <functional>
@@ -8,6 +9,7 @@
 using namespace p2p::util;
 using std::cout;
 using std::endl;
+using std::stringstream;
 
 TEST(UUID, smoke)
 {
@@ -48,6 +50,19 @@ TEST(UUID, parse)
     cout << "test uuid:   " << test_uuid << endl
          << "parsed uuid: " << u << endl;
     ASSERT_EQ(u_string, "4c0272e2-5901-43b9-be4b-73b219abaf2f");
+}
+
+TEST(UUID, readIstreamParse)
+{
+    std::string test_uuid = "4c0272e2-5901-43b9-be4b-73b219abaf2f";
+    UUID u;
+    stringstream ss;
+    cout << test_uuid.size() << endl;
+    ss << test_uuid;
+    ss >> u;
+    ASSERT_EQ(u.to_string(), "4c0272e2-5901-43b9-be4b-73b219abaf2f");
+    cout << "test uuid:   " << test_uuid << endl
+         << "parsed uuid: " << u << endl;
 }
 
 TEST(UUID, speedParse)

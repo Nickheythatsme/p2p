@@ -28,10 +28,10 @@ namespace util {
 
 using uchar = unsigned char;
 
-// 128 bit number
 class UUID
 {
     public:
+        UUID();
         explicit UUID(std::unique_ptr<uchar[]> &&data);
         UUID(UUID &&rhs) noexcept = default;
         UUID(const UUID &rhs);
@@ -42,8 +42,9 @@ class UUID
 
         // Parse the UUID from a human readable string and back again
         static UUID parse(const char *suuid);
-        std::string to_string() const;
+        friend std::istream &operator>>(std::istream &in, UUID &u);
         friend std::ostream &operator<<(std::ostream &out, const UUID &u);
+        std::string to_string() const;
 
         // Assignment
         UUID &operator=(const UUID &uuid);
@@ -56,7 +57,6 @@ class UUID
         friend struct std::hash<UUID>;
     protected:
     private:
-        UUID();
         std::unique_ptr<uchar[]> data {nullptr};
 };
 
