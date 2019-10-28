@@ -6,6 +6,7 @@
 #define _RECORD_H_
 
 #include "util/hash.hpp"
+#include "networking/serialize.h"
 #include "util/uuid.h"
 #include <fstream>
 #include <exception>
@@ -46,7 +47,6 @@ class Record
         friend bool operator==(const Record& lhs, const UUID& rhs);
         friend bool operator==(const Record& lhs, const Record &rhs);
         virtual std::ostream& retrieve(std::ostream& in) = 0;
-        virtual bool is_remote() const = 0;
         const UUID& get_uuid() const;
     protected:
         UUID uuid;
@@ -61,7 +61,6 @@ class LocalRecord: public Record
         LocalRecord(const LocalRecord &rhs) = default;
         LocalRecord(LocalRecord &&rhs) noexcept = default;
         std::ostream& retrieve(std::ostream& in) override;
-        bool is_remote() const override;
     private:
         std::string filename;
         Hash256 sha256; // to verify the integrity of the record

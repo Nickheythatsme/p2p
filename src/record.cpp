@@ -46,11 +46,6 @@ LocalRecord LocalRecord::CreateLocalRecord(const char* filename)
     return LocalRecord(UUID::init_random(), builder.finalize(), filename);
 }
 
-bool LocalRecord::is_remote() const
-{
-    return false;
-}
-
 std::ostream &LocalRecord::retrieve(std::ostream &out)
 {
     std::ifstream in(filename);
