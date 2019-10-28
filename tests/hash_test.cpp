@@ -31,9 +31,7 @@ TEST(HashTest, SmokeTest) {
   auto ss = generate_stream(100);
   ss >> hashBuilder;
   auto hashObject = hashBuilder.finalize();
-  std::stringstream ss_out;
-  ss_out << hashObject;
-  ASSERT_EQ(ss_out.str(), "29a3ad1d1367654a736740712e3312f34c10938a99a37eee7a2bb61912761c7f");
+  ASSERT_EQ(hashObject.to_string(), "29a3ad1d1367654a736740712e3312f34c10938a99a37eee7a2bb61912761c7f");
 }
 
 TEST(HashTest, EqualityOperators) {
@@ -92,4 +90,30 @@ TEST(HashTest, LoadTest) {
   auto end = std::chrono::steady_clock::now();
   auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
   cout << "Completed hash in " << elapsed.count() << " us" << endl;
+}
+
+TEST(HashTest, unserialize) {
+    std::stringstream ss;
+    uint64_t val = 0x1122334455667788;
+    for (int i=0; i<8; ++i)
+        ss.write((char*)&val, sizeof(uint64_t));
+    Hash256 hash256;
+    ss >> hash256;
+    ASSERT_EQ("8877665544332211887766554433221188776655443322118877665544332211", hash256.to_string());
+}
+
+TEST(HashTest, serialize) {
+    // explicit Hash256(std::unique_ptr<unsigned char[]> &&hash_value) :
+    //    this->hash_value.reset(reinterpret_cast<uint64_t *>(hash_value.release()));
+    auto data = std::make_unique<uint64_t[]>(Hash256::OUTPUT_SIZE);
+    for (int i=0; i < Hash256::OUTPUT_SIZE; ++i) {
+        data[i] = 0x1122334455667788;
+    }
+    std::unique_ptr<unsigned char[]> cdata;
+    cdata.reset(reinterpret_cast<unsigned char*>(data.release()));
+    Hash256 hash256(std::move(cdata));
+
+    std::stringstream ss_out;
+    hash256.serialize(ss_out);
+    ASSERT_EQ("8877665544332211887766554433221188776655443322118877665544332211", hash256.to_string());
 }
