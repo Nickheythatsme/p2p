@@ -39,7 +39,7 @@ class record_exception : public std::exception
 class Record
 {
     public:
-        Record() = delete;
+        Record() = default;
         explicit Record(UUID uuid);
         Record(const Record &rhs) = default;
         Record(Record &&rhs) noexcept = default;
@@ -50,22 +50,10 @@ class Record
         const UUID& get_uuid() const;
     protected:
         UUID uuid;
-};
-
-class LocalRecord: public Record
-{
-    public:
-        LocalRecord() = delete;
-        static LocalRecord CreateLocalRecord(const char* filename);
-        LocalRecord(UUID uuid, Hash256 sha256, const char *filename);
-        LocalRecord(const LocalRecord &rhs) = default;
-        LocalRecord(LocalRecord &&rhs) noexcept = default;
-        std::ostream& retrieve(std::ostream& in) override;
-    private:
         std::string filename;
-        Hash256 sha256; // to verify the integrity of the record
+        uint64_t record_length;
+        // Hash256 sha256; // to verify the integrity of the record
 };
-
 
 } // namespace p2p
 #endif //_RECORD_H_
