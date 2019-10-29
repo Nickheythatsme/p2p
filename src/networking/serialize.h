@@ -6,7 +6,32 @@
 #ifndef P2P_SERIALIZE
 #define P2P_SERIALIZE
 
+#define SERIALIZE_BUFF_SIZE 2048
+
 namespace p2p { namespace networking {
+
+#define SERIALIZE_EXCEPTION_HASH "Provided hash code did not match the one calculated during serialization"
+
+class serialize_exception : public std::exception
+{
+    public:
+        explicit serialize_exception(const char *what_arg) :
+        std::exception(),
+        what_arg(what_arg)
+        {
+        }
+        const char *what() const noexcept override
+        {
+            return what_arg;
+        }
+        serialize_exception& operator=(const exception &other) noexcept
+        {
+            what_arg = other.what();
+            return *this;
+        }
+    private:
+        const char *what_arg;
+};
  
 inline uint64_t readNetworkLongLong(std::istream& istr)
 {
