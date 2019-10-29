@@ -63,3 +63,21 @@ TEST(Record, serialize_unserialize)
     ASSERT_EQ(record.get_record_contents(), record2.get_record_contents());
 }
 
+TEST(Record, unserialize_error)
+{
+    // Create the record
+    HashBuilder builder;
+    builder.write(reinterpret_cast<const unsigned char*>("test"), 4);
+    Hash256 hash256 = builder.finalize();
+    Record record(util::UUID::init_random(), hash256, "not the right content");
+
+    // Serialize it
+    std::stringstream ss;
+    record.serialize(ss);
+
+
+    // Unserialize it, expect error
+    Record record_unserialize;
+    ASSERT_THROW(record_unserialize.unserialize(ss), networking::serialize_exception);
+}
+
