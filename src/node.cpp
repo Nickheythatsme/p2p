@@ -12,12 +12,14 @@ Node::Node()
 
 }
 
-Node::Node(const Node &rhs)
+Node::Node(const Node &rhs):
+    records(rhs.records)
 {
 
 }
 
-Node::Node(Node &&rhs) noexcept
+Node::Node(Node &&rhs) noexcept :
+    records(std::move(rhs.records))
 {
 
 }

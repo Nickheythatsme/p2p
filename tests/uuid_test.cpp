@@ -5,6 +5,7 @@
 #include <vector>
 #include <chrono>
 #include <functional>
+#include <algorithm>
 
 using namespace p2p::util;
 using std::cout;
@@ -103,6 +104,18 @@ TEST(UUID, stdHash) {
     auto uuid = UUID::parse("c3d20003-19c3-48aa-8493-89fcfa2b0b33");
     auto result = std::hash<UUID> {}(uuid);
     cout << "hash: " << result << '\n';
-    cout << "sizeof(unsigned long) = " << sizeof(unsigned long) << '\n';
     ASSERT_EQ(231805616051296871, result);
+}
+
+TEST(UUID, serialize) {
+    std::string suuid = "c3d20003-19c3-48aa-8493-89fcfa2b0b33";
+    std::stringstream ss;
+    UUID uuid = UUID::parse(suuid.c_str());
+    ASSERT_EQ(uuid.to_string(), suuid);
+}
+
+TEST(UUID, unserialize) {
+    std::string suuid = "c3d20003-19c3-48aa-8493-89fcfa2b0b33";
+    UUID uuid = UUID::parse(suuid.c_str());
+    ASSERT_EQ(uuid.to_string(), suuid);
 }

@@ -14,6 +14,7 @@
 #include <string>
 #include <exception>
 #include <functional>
+#include "../networking/serialize.h"
 
 #if !defined(HAVE_DECL_BE64TOH) || HAVE_DECL_BE64TOH == 0
     #include "../crypto/endian.h"
@@ -28,7 +29,7 @@ namespace util {
 
 using uchar = unsigned char;
 
-class UUID
+class UUID: public networking::Serializable
 {
     public:
         UUID();
@@ -45,6 +46,10 @@ class UUID
         friend std::istream &operator>>(std::istream &in, UUID &u);
         friend std::ostream &operator<<(std::ostream &out, const UUID &u);
         std::string to_string() const;
+
+        // Serialize or unserialize
+        std::ostream& serialize(std::ostream& out) const;
+        std::istream& unserialize(std::istream& in);
 
         // Assignment
         UUID &operator=(const UUID &uuid);

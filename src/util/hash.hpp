@@ -8,10 +8,13 @@
 #define HASH_HPP
 
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <exception>
 #include <cstring>
+#include <string>
 #include "../crypto/sha256.h"
+#include "../networking/serialize.h"
 
 #if !defined(HAVE_DECL_BE64TOH) || HAVE_DECL_BE64TOH == 0
     #include "../crypto/endian.h"
@@ -20,6 +23,7 @@
 #endif
 
 namespace p2p {
+using namespace networking;
 namespace util {
 
 class hash_exception : public std::exception
@@ -43,9 +47,11 @@ class hash_exception : public std::exception
         const char *what_arg;
 };
 
-class Hash256
+class Hash256: public Serializable
 {
     public:
+        Hash256()
+        { }
         explicit Hash256(std::unique_ptr<unsigned char[]> &&hash_value) :
         hash_value(nullptr)
         {
@@ -64,14 +70,40 @@ class Hash256
         {
             rhs.hash_value = std::make_unique<uint64_t[]>(Hash256::OUTPUT_SIZE);
         }
-        friend std::ostream &operator<<(std::ostream &out, const Hash256 &to_print)
+        /**
+         * Output to a human readable string.
+         */
+        std::string to_string() const
         {
-            auto previous_flags = out.flags();
+            std::stringstream ss;
             for(int i = 0; i < Hash256::OUTPUT_SIZE; ++i) {
-                out << std::hex << to_print.hash_value.get()[i];
+                ss << std::hex << hash_value.get()[i];
             }
-            out.flags(previous_flags);
+            return ss.str();
+        }
+        friend std::ostream &operator<<(std::ostream &out, const Hash256 &to_serialize)
+        {
+            return to_serialize.serialize(out);
+        }
+        friend std::istream& operator>>(std::istream &in, Hash256 &to_unserialize)
+        {
+            return to_unserialize.unserialize(in);
+        }
+        std::ostream& serialize(std::ostream& out) const
+        {
+            auto hvalue_ptr = hash_value.get();
+            for(int i = 0; i < Hash256::OUTPUT_SIZE; ++i) {
+                writeNetworkLongLong(out, hvalue_ptr[i]);
+            }
             return out;
+        }
+        std::istream& unserialize(std::istream& in)
+        {
+            auto hvalue_ptr = hash_value.get();
+            for(int i = 0; i < Hash256::OUTPUT_SIZE; ++i) {
+                hvalue_ptr[i] = readNetworkLongLong(in);
+            }
+            return in;
         }
         // Returns the memcmp of the two values, 0 means equal
         int compare(const Hash256 &rhs) const

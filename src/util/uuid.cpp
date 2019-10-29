@@ -149,6 +149,16 @@ std::string UUID::to_string () const
     return ss.str();
 }
 
+std::ostream& UUID::serialize(std::ostream& out) const
+{
+    return out << *this;
+}
+
+std::istream& UUID::unserialize(std::istream& in)
+{
+    return in >> *this;
+}
+
 std::istream &operator>>(std::istream &in, UUID &u)
 {
     char raw_data[36];

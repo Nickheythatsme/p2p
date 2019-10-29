@@ -5,6 +5,8 @@
 
 #include <string>
 #include <memory>
+#include <vector>
+#include "record.h"
 #include "util/hash.hpp"
 
 namespace p2p
@@ -20,6 +22,7 @@ class Node
         ~Node();
     protected:
     private:
+        std::vector<Record> records;
 };
 
 } // namespace p2p

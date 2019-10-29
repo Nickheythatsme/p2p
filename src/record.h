@@ -6,14 +6,15 @@
 #define _RECORD_H_
 
 #include "util/hash.hpp"
-#include "networking/serialize.h"
 #include "util/uuid.h"
+#include "networking/serialize.h"
 #include <fstream>
 #include <exception>
 
 namespace p2p
 {
 using namespace util;
+using namespace networking;
 
 class record_exception : public std::exception
 {
@@ -36,23 +37,26 @@ class record_exception : public std::exception
         const char *what_arg;
 };
 
-class Record
+class Record: public Serializable
 {
     public:
+        static Record build(std::string record_contents);
         Record() = default;
-        explicit Record(UUID uuid);
+        explicit Record(UUID uuid, Hash256 sha256, std::string record_contents);
         Record(const Record &rhs) = default;
         Record(Record &&rhs) noexcept = default;
         virtual ~Record() = default;
         friend bool operator==(const Record& lhs, const UUID& rhs);
         friend bool operator==(const Record& lhs, const Record &rhs);
-        virtual std::ostream& retrieve(std::ostream& in) = 0;
         const UUID& get_uuid() const;
+        const Hash256& get_hash256() const;
+        const std::string& get_record_contents() const;
+        std::ostream& serialize(std::ostream& out) const;
+        std::istream& unserialize(std::istream& in);
     protected:
-        UUID uuid;
-        std::string filename;
-        uint64_t record_length;
-        // Hash256 sha256; // to verify the integrity of the record
+        UUID uuid; // key
+        Hash256 sha256; // value
+        std::string record_contents;
 };
 
 } // namespace p2p
