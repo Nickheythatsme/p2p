@@ -15,7 +15,8 @@ add_library(p2pnetworking SHARED
 
 add_library(p2pmain SHARED
         util/uuid.cpp
+        util/key.cpp
         crypto/sha256.cpp
-        node.cpp
         record.cpp
+        node.cpp
         )

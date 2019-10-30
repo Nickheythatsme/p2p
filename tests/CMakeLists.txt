@@ -61,4 +61,8 @@ add_test(NAME listener_test COMMAND listener_test)
 add_executable(serialize_test serialize_test.cpp)
 target_link_libraries(serialize_test gtest_main p2pnetworking)
 add_test(NAME serialize_test COMMAND serialize_test)
+
+add_executable(key_test key_test.cpp)
+target_link_libraries(key_test gtest_main p2putil)
+add_test(NAME key_test COMMAND key_test)
 ### END Add/Make tests
