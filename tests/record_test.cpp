@@ -36,7 +36,7 @@ Record generate_record()
 
 void print_record(const Record &r)
 {
-    cout << "UUID: " << r.get_uuid() << endl
+    cout << "KEY: " << r.get_record_key().to_string() << endl
          << "HASH: " << r.get_hash256().to_string() << endl
          << "Record contents: " << r.get_record_contents() << endl
          << endl;
@@ -58,7 +58,7 @@ TEST(Record, serialize_unserialize)
     print_record(record);
     print_record(record2);
 
-    ASSERT_EQ(record.get_uuid(), record2.get_uuid());
+    ASSERT_EQ(record.get_record_key(), record2.get_record_key());
     ASSERT_EQ(record.get_hash256(), record2.get_hash256());
     ASSERT_EQ(record.get_record_contents(), record2.get_record_contents());
 }
@@ -69,7 +69,7 @@ TEST(Record, unserialize_error)
     HashBuilder builder;
     builder.write(reinterpret_cast<const unsigned char*>("test"), 4);
     Hash256 hash256 = builder.finalize();
-    Record record(util::UUID::init_random(), hash256, "not the right content");
+    Record record(util::Key::init_random(), hash256, "not the right content");
 
     // Serialize it
     std::stringstream ss;

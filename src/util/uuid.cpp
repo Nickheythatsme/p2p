@@ -9,7 +9,6 @@
 
 #include "uuid.h"
 #include <chrono>
-#include <cstdio>
 #include <iomanip>
 #include <sstream>
 

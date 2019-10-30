@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <string>
 #include <random>
+#include <algorithm>
 #include <map>
 #include "gtest/gtest.h"
 #include "test_helper.h"

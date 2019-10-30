@@ -1,7 +1,6 @@
 #include <cstdint>
 #include <arpa/inet.h>
 #include <fstream>
-#include <stdio.h>
 
 #ifndef P2P_SERIALIZE
 #define P2P_SERIALIZE
