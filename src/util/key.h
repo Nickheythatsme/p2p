@@ -35,6 +35,8 @@ public:
     // Serialize functions
     std::ostream& serialize(std::ostream& out) const;
     std::istream& unserialize(std::istream& in);
+    friend std::ostream& operator<<(std::ostream& out, const Key &rhs);
+    friend std::istream& operator>>(std::istream& in, Key &rhs);
     static const size_t NLONG = 2; // two ints
 private:
     Key(uint64_t data1, uint64_t data2);

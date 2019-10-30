@@ -103,5 +103,15 @@ std::istream& Key::unserialize(std::istream& in)
     return in;
 }
 
+std::ostream& operator<<(std::ostream& out, const Key &rhs)
+{
+    return rhs.serialize(out);
+}
+
+std::istream& operator>>(std::istream& in, Key &rhs)
+{
+    return rhs.unserialize(in);
+}
+
 } // namespace util
 } // namespace p2p

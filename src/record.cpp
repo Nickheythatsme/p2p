@@ -13,36 +13,36 @@ using namespace networking;
 
 Record Record::build(std::string record_contents)
 {
-    auto uuid = UUID::init_random();
+    auto record_key = Key::init_random();
     HashBuilder builder;
     builder.write(reinterpret_cast<const unsigned char*>(record_contents.c_str()), record_contents.size());
     return Record(
-            std::move(uuid),
+            std::move(record_key),
             std::move(builder.finalize()),
             std::move(record_contents)
             );
 }
 
-Record::Record(UUID uuid, Hash256 sha256, std::string record_contents) :
-    uuid(std::move(uuid)),
+Record::Record(Key record_key, Hash256 sha256, std::string record_contents) :
+    record_key(std::move(record_key)),
     sha256(std::move(sha256)),
     record_contents(std::move(record_contents))
 {
 }
 
-bool operator==(const Record& lhs, const UUID& rhs)
+bool operator==(const Record& lhs, const Key& rhs)
 {
-    return lhs.uuid == rhs;
+    return lhs.record_key == rhs;
 }
 
 bool operator==(const Record& lhs, const Record &rhs)
 {
-    return lhs.uuid == rhs.uuid;
+    return lhs.record_key == rhs.record_key;
 }
 
-const UUID& Record::get_uuid() const
+const Key& Record::get_record_key() const
 {
-    return uuid;
+    return record_key;
 }
 
 const Hash256& Record::get_hash256() const
@@ -57,7 +57,7 @@ const std::string& Record::get_record_contents() const
 
 std::ostream& Record::serialize(std::ostream& out) const
 {
-    out << uuid << sha256;
+    out << record_key << sha256;
     uint64_t record_length = (uint64_t) record_contents.size();
     writeNetworkLongLong(out, record_length);
     out.write(record_contents.c_str(), record_length);
@@ -70,7 +70,7 @@ std::istream& Record::unserialize(std::istream& in)
     uint64_t record_length;
 
     HashBuilder builder;
-    in >> uuid;
+    in >> record_key;
     sha256.unserialize(in);
 
     record_length = readNetworkLongLong(in);
