@@ -2,3 +2,9 @@
 
 # p2p
 simple p2p messenger written in C++. Using Boost and (possibly) qt.
+
+### Requirements
+
+* cmake
+* make
+* c++ compiler

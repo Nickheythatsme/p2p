@@ -55,7 +55,7 @@ class Record: public Serializable
         std::istream& unserialize(std::istream& in);
     protected:
         UUID uuid; // key
-        Hash256 sha256; // value
+        Hash256 hash256; // value
         std::string record_contents;
 };
 

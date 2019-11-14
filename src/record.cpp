@@ -25,7 +25,7 @@ Record Record::build(std::string record_contents)
 
 Record::Record(UUID uuid, Hash256 sha256, std::string record_contents) :
     uuid(std::move(uuid)),
-    sha256(std::move(sha256)),
+    hash256(std::move(sha256)),
     record_contents(std::move(record_contents))
 {
 }
@@ -47,7 +47,7 @@ const UUID& Record::get_uuid() const
 
 const Hash256& Record::get_hash256() const
 {
-    return sha256;
+    return hash256;
 }
 
 const std::string& Record::get_record_contents() const
@@ -57,7 +57,7 @@ const std::string& Record::get_record_contents() const
 
 std::ostream& Record::serialize(std::ostream& out) const
 {
-    out << uuid << sha256;
+    out << uuid << hash256;
     uint64_t record_length = (uint64_t) record_contents.size();
     writeNetworkLongLong(out, record_length);
     out.write(record_contents.c_str(), record_length);
@@ -71,7 +71,7 @@ std::istream& Record::unserialize(std::istream& in)
 
     HashBuilder builder;
     in >> uuid;
-    sha256.unserialize(in);
+    hash256.unserialize(in);
 
     record_length = readNetworkLongLong(in);
     record_contents.clear();
@@ -80,7 +80,7 @@ std::istream& Record::unserialize(std::istream& in)
     in.read(buff, record_length);
     record_contents.append(buff, record_length);
     builder.write(reinterpret_cast<unsigned char*>(buff), record_length);
-    if (builder.finalize() != sha256) {
+    if (builder.finalize() != hash256) {
         throw serialize_exception(SERIALIZE_EXCEPTION_HASH);
     }
     return in;

@@ -412,7 +412,7 @@ void TransformD64(unsigned char* out, const unsigned char* in)
     WriteBE32(out + 28, h + 0x5be0cd19ul);
 }
 
-} // namespace sha256
+} // namespace hash256
 
 typedef void (*TransformType)(uint32_t*, const unsigned char*, size_t);
 typedef void (*TransformD64Type)(unsigned char*, const unsigned char*);
